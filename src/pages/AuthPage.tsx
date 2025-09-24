@@ -12,7 +12,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmployeeLayout } from '@/components/layout/EmployeeLayout';
 
 export default function AuthPage() {
-  const { signIn, signUp, isAuthenticated, isLoading, user } = useAuthState();
+  const { signIn, signUp, isAuthenticated, isLoading, user, profile } = useAuthState();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,9 +23,9 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBiometric, setShowBiometric] = useState(false);
 
-  // Redirect if already authenticated
-  if (isAuthenticated && user) {
-    const redirectPath = user.user_metadata?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+  // Redirect if already authenticated and profile is loaded
+  if (isAuthenticated && user && profile) {
+    const redirectPath = profile.role === 'admin' ? '/admin/dashboard' : '/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
