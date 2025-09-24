@@ -119,132 +119,133 @@ export default function AdminEmployeeApproval() {
   };
 
   return (
-    <AdminLayout
-      pageTitle="Employee Approval"
-      isMobile={isMobile}
-      activeTab={activeTab}
-      sideMenuOpen={sideMenuOpen}
-      toggleSideMenu={toggleSideMenu}
-      closeSideMenu={closeSideMenu}
-      navigateToTab={navigateToTab}
-      navigateToPath={navigateToPath}
-      userName={userName}
-      userRole={userRole}
-    >
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Employee Approval
-          </h1>
-          <p className="text-muted-foreground">
-            Review and manage pending employee registrations.
-          </p>
-        </div>
+    <> {/* Added React.Fragment here */}
+      <AdminLayout
+        pageTitle="Employee Approval"
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToTab={navigateToTab}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
+        <div className="space-y-6">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Employee Approval
+            </h1>
+            <p className="text-muted-foreground">
+              Review and manage pending employee registrations.
+            </p>
+          </div>
 
-        <Card className="status-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCheck className="w-6 h-6 text-primary" />
-              Pending Applications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center items-center h-32">
-                <LoadingSpinner size="lg" />
-              </div>
-            ) : error ? (
-              <div className="text-center text-destructive">
-                Error loading pending applications: {error.message}
-              </div>
-            ) : pendingProfiles && pendingProfiles.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Applied On</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingProfiles.map((profile) => (
-                      <TableRow key={profile.id}>
-                        <TableCell className="font-medium">{profile.full_name}</TableCell>
-                        <TableCell>{profile.email || 'N/A'}</TableCell>
-                        <TableCell>{format(new Date(profile.created_at), 'MMM dd, yyyy')}</TableCell>
-                        <TableCell className="text-right flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleActionClick(profile, 'approve')}
-                            disabled={updateProfileMutation.isPending}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1 text-accent" />
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleActionClick(profile, 'reject')}
-                            disabled={updateProfileMutation.isPending}
-                          >
-                            <XCircle className="w-4 h-4 mr-1 text-destructive" />
-                            Reject
-                          </Button>
-                        </TableCell>
+          <Card className="status-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCheck className="w-6 h-6 text-primary" />
+                Pending Applications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-32">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : error ? (
+                <div className="text-center text-destructive">
+                  Error loading pending applications: {error.message}
+                </div>
+              ) : pendingProfiles && pendingProfiles.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Applied On</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <p className="text-center text-muted-foreground">No pending employee applications.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </AdminLayout>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingProfiles.map((profile) => (
+                        <TableRow key={profile.id}>
+                          <TableCell className="font-medium">{profile.full_name}</TableCell>
+                          <TableCell>{profile.email || 'N/A'}</TableCell>
+                          <TableCell>{format(new Date(profile.created_at), 'MMM dd, yyyy')}</TableCell>
+                          <TableCell className="text-right flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleActionClick(profile, 'approve')}
+                              disabled={updateProfileMutation.isPending}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1 text-accent" />
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleActionClick(profile, 'reject')}
+                              disabled={updateProfileMutation.isPending}
+                            >
+                              <XCircle className="w-4 h-4 mr-1 text-destructive" />
+                              Reject
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground">No pending employee applications.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </AdminLayout>
 
-    {/* Confirmation Dialog */}
-    <AlertDialog open={!!selectedProfile} onOpenChange={() => setSelectedProfile(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            {actionType === 'approve' ? 'Approve Employee?' : 'Reject Employee?'}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to {actionType} {selectedProfile?.full_name}'s application?
-            This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => { setSelectedProfile(null); setActionType(null); }}>
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleConfirmAction}
-            disabled={updateProfileMutation.isPending}
-            className={actionType === 'approve' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'}
-          >
-            {updateProfileMutation.isPending ? (
-              <LoadingSpinner size="sm" className="mr-2" />
-            ) : actionType === 'approve' ? (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Confirm Approve
-              </>
-            ) : (
-              <>
-                <XCircle className="w-4 h-4 mr-2" />
-                Confirm Reject
-              </>
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-    </>
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!selectedProfile} onOpenChange={() => setSelectedProfile(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {actionType === 'approve' ? 'Approve Employee?' : 'Reject Employee?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to {actionType} {selectedProfile?.full_name}'s application?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setSelectedProfile(null); setActionType(null); }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              disabled={updateProfileMutation.isPending}
+              className={actionType === 'approve' ? 'bg-accent text-accent-foreground hover:bg-accent/90' : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'}
+            >
+              {updateProfileMutation.isPending ? (
+                <LoadingSpinner size="sm" className="mr-2" />
+              ) : actionType === 'approve' ? (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Confirm Approve
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Confirm Reject
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </> {/* Closed React.Fragment here */}
   );
 }
