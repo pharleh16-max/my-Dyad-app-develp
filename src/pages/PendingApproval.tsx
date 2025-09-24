@@ -28,7 +28,7 @@ export default function PendingApproval() {
           <CardHeader>
             <CardTitle className="text-center">Registration Submitted</CardTitle>
             <CardDescription className="text-center">
-              Thank you for registering with AttendanceDREAMS
+              Thank you for registering with DREAMS Attendance Management System
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

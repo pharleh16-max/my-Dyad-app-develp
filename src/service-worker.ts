@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'attendancedreams-cache-v1';
+const CACHE_NAME = 'dreams-attendance-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',

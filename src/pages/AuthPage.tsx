@@ -105,7 +105,7 @@ export default function AuthPage() {
     setErrors({});
 
     try {
-      const { error } = await signUp(formData.email, formData.password, formData.fullName);
+      const { data, error } = await signUp(formData.email, formData.password, formData.fullName);
       console.log('Supabase signUp response - data:', data, 'error:', error);
       
       if (error) {
@@ -188,7 +188,7 @@ export default function AuthPage() {
               <Fingerprint className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold mb-2">AttendanceDREAMS</h1>
+          <h1 className="text-2xl font-bold mb-2">DREAMS Attendance Management System</h1>
           <p className="text-muted-foreground">Secure Employee Access</p>
         </div>
 

@@ -21,7 +21,7 @@ const Index = () => {
           </div>
           
           <h1 className="text-3xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-            AttendanceDREAMS
+            DREAMS Attendance Management System
           </h1>
           <p className="text-muted-foreground text-lg mb-2">
             Professional Biometric Attendance Tracking

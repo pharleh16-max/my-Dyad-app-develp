@@ -154,7 +154,7 @@ export default function EmployeeDashboard() {
 
   return (
     <>
-      <Header title="AttendanceDREAMS" />
+      <Header title="DREAMS Attendance Management System" />
       <EmployeeLayout>
         <div className="space-y-6">
           {/* Welcome Section */}
