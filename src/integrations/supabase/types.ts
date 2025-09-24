@@ -28,6 +28,7 @@ export type Database = {
           role: string
           status: string
           updated_at: string | null
+          email: string | null
         }
         Insert: {
           biometric_enrolled?: boolean | null
@@ -42,6 +43,7 @@ export type Database = {
           role?: string
           status?: string
           updated_at?: string | null
+          email?: string | null
         }
         Update: {
           biometric_enrolled?: boolean | null
@@ -56,6 +58,90 @@ export type Database = {
           role?: string
           status?: string
           updated_at?: string | null
+          email?: string | null
+        }
+        Relationships: []
+      }
+      attendance_records: {
+        Row: {
+          id: string
+          user_id: string
+          check_in_time: string
+          check_out_time: string | null
+          location_latitude: number | null
+          location_longitude: number | null
+          location_address: string | null
+          location_accuracy: number | null
+          notes: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          check_in_time: string
+          check_out_time?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_accuracy?: number | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          check_in_time?: string
+          check_out_time?: string | null
+          location_latitude?: number | null
+          location_longitude?: number | null
+          location_address?: string | null
+          location_accuracy?: number | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          id: string
+          name: string
+          address: string | null
+          latitude: number | null
+          longitude: number | null
+          radius_meters: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          address?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          radius_meters?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          address?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          radius_meters?: number | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -64,7 +150,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      handle_new_user: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
+      update_updated_at_column: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
