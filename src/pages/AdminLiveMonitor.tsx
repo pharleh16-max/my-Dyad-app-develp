@@ -12,6 +12,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tables } from "@/integrations/supabase/types";
 import { format, startOfDay, addDays, parseISO } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { GoogleMap, useLoadScript, MarkerF } from "@react-google-maps/api";
 import { useToast } from "@/hooks/use-toast";
 
 type Profile = Tables<'profiles'>;
@@ -29,6 +30,18 @@ interface EmployeeLiveStatus extends Profile {
   };
 }
 
+const containerStyle = {
+  width: '100%',
+  height: '400px',
+  borderRadius: 'var(--radius)',
+};
+
+// Default center coordinates from the user's example
+const defaultCenter = {
+  lat: 28.9911499,
+  lng: 50.8781685,
+};
+
 export default function AdminLiveMonitor() {
   const { profile: adminProfile } = useAuthState();
   const isMobile = useIsMobile();
@@ -44,6 +57,13 @@ export default function AdminLiveMonitor() {
 
   const userName = adminProfile?.full_name || "Admin";
   const userRole = adminProfile?.role || "admin";
+
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: googleMapsApiKey || '',
+    libraries: ["places"], // Optional: if you need places API
+  });
 
   const { data: employeesWithAttendance, isLoading, error } = useQuery<EmployeeLiveStatus[]>({
     queryKey: ['liveAttendance'],
@@ -121,7 +141,30 @@ export default function AdminLiveMonitor() {
     }
   };
 
-  if (isLoading) {
+  const mapCenter = useMemo(() => {
+    const checkedInEmployeesWithLocation = employeesWithAttendance?.filter(
+      (emp) => emp.attendance.status === 'checked_in' && emp.attendance.locationLatitude && emp.attendance.locationLongitude
+    );
+
+    if (checkedInEmployeesWithLocation && checkedInEmployeesWithLocation.length > 0) {
+      const avgLat = checkedInEmployeesWithLocation.reduce((sum, emp) => sum + (emp.attendance.locationLatitude || 0), 0) / checkedInEmployeesWithLocation.length;
+      const avgLng = checkedInEmployeesWithLocation.reduce((sum, emp) => sum + (emp.attendance.locationLongitude || 0), 0) / checkedInEmployeesWithLocation.length;
+      return { lat: avgLat, lng: avgLng };
+    }
+    return defaultCenter;
+  }, [employeesWithAttendance]);
+
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback(function callback() {
+    setMap(null);
+  }, []);
+
+  if (isLoading || !isLoaded) {
     return (
       <AdminLayout
         pageTitle="Live Attendance Monitor"
@@ -137,6 +180,32 @@ export default function AdminLiveMonitor() {
       >
         <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (loadError) {
+    toast({
+      title: "Google Maps Error",
+      description: "Failed to load Google Maps. Please check your API key and network connection.",
+      variant: "destructive",
+    });
+    return (
+      <AdminLayout
+        pageTitle="Live Attendance Monitor"
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToTab={navigateToTab}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
+        <div className="text-center text-destructive p-6">
+          Error loading map: {loadError.message}. Please ensure your `VITE_GOOGLE_MAPS_API_KEY` is correctly set in your `.env` file.
         </div>
       </AdminLayout>
     );
@@ -186,27 +255,50 @@ export default function AdminLiveMonitor() {
           </p>
         </div>
 
-        {/* Live Map using iframe */}
+        {/* Live Map */}
         <Card className="status-card p-0 overflow-hidden">
           <CardHeader className="px-6 pt-6 pb-4">
             <CardTitle className="flex items-center gap-2 text-xl">
               <MapPin className="w-6 h-6 text-primary" />
-              Employee Locations (Static Map)
+              Employee Locations
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <iframe
-              src="https://maps.google.com/maps?q=Main%20Office%20Building&t=&z=13&ie=UTF8&iwloc=&output=embed"
-              width="100%"
-              height="400"
-              style={{ border: 0, borderRadius: 'var(--radius)' }}
-              allowFullScreen={false}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-            <p className="text-xs text-muted-foreground text-center mt-2 px-4">
-              This map displays a static location. For dynamic employee locations, a Google Maps API key and a more advanced integration are required.
-            </p>
+            {googleMapsApiKey ? (
+              <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={mapCenter}
+                zoom={10}
+                onLoad={onLoad}
+                onUnmount={onUnmount}
+              >
+                {employeesWithAttendance?.map((employee) =>
+                  employee.attendance.status === 'checked_in' &&
+                  employee.attendance.locationLatitude &&
+                  employee.attendance.locationLongitude ? (
+                    <MarkerF
+                      key={employee.id}
+                      position={{
+                        lat: employee.attendance.locationLatitude,
+                        lng: employee.attendance.locationLongitude,
+                      }}
+                      title={employee.full_name || "Employee"}
+                      // You can customize marker icon here if needed
+                    />
+                  ) : null
+                )}
+              </GoogleMap>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-muted/50 border-dashed border-2 border-border m-6 rounded-lg">
+                <MapPin className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="font-semibold text-xl text-muted-foreground">
+                  Google Maps API Key Missing
+                </h3>
+                <p className="text-muted-foreground text-sm mt-2 text-center px-4">
+                  Please add your Google Maps API key to the `VITE_GOOGLE_MAPS_API_KEY` environment variable in your `.env` file to enable the map.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
