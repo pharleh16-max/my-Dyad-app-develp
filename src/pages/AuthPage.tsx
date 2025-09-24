@@ -23,8 +23,11 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBiometric, setShowBiometric] = useState(false);
 
+  console.log('AuthPage Render: isAuthenticated:', isAuthenticated, 'user:', user, 'profile:', profile);
+
   // Redirect if already authenticated and profile is loaded
   if (isAuthenticated && user && profile) {
+    console.log('AuthPage: User authenticated and profile loaded, redirecting...');
     const redirectPath = profile.role === 'admin' ? '/admin/dashboard' : '/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
@@ -68,7 +71,11 @@ export default function AuthPage() {
   };
 
   const handleSignIn = async () => {
-    if (!validateForm(false)) return;
+    console.log('handleSignIn: Attempting sign in with email:', formData.email);
+    if (!validateForm(false)) {
+      console.log('handleSignIn: Validation failed.');
+      return;
+    }
 
     setIsSubmitting(true);
     setErrors({});
@@ -77,12 +84,18 @@ export default function AuthPage() {
       const { error } = await signIn(formData.email, formData.password);
       
       if (error) {
+        console.error('handleSignIn: Supabase sign in error:', error);
         setErrors({ general: error.message });
+      } else {
+        console.log('handleSignIn: Supabase sign in successful (no direct error returned).');
+        // The onAuthStateChange listener in useAuthState should handle the rest.
       }
     } catch (err) {
+      console.error('handleSignIn: Unexpected error during sign in:', err);
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setIsSubmitting(false);
+      console.log('handleSignIn: Sign in process finished, isSubmitting set to false.');
     }
   };
 
@@ -102,7 +115,6 @@ export default function AuthPage() {
           setErrors({ general: error.message });
         }
       } else {
-        // Updated success message
         setErrors({ success: 'Registration successful! You can now sign in.' });
       }
     } catch (err) {
@@ -252,7 +264,7 @@ export default function AuthPage() {
                       placeholder="John Doe"
                       className="pl-10"
                       value={formData.fullName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value })))}
                     />
                   </div>
                   {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
