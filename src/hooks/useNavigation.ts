@@ -42,19 +42,19 @@ export function useNavigation(userRole: UserRole = 'employee') {
     // Map tab IDs to routes based on user role
     const routes = userRole === 'admin' ? {
       dashboard: '/admin/dashboard',
-      employees: '/admin/employees',
-      monitoring: '/admin/attendance',
-      reports: '/admin/reports',
-      'employee-approval': '/admin/employee-approval', // New route mapping
+      employees: '/admin/employees', // Now points to AdminEmployeesPage
+      monitoring: '/admin/attendance', // Now points to AdminLiveMonitor
+      reports: '/admin/reports', // Now points to AdminReportsPage
+      'employee-approval': '/admin/employee-approval',
       locations: '/admin/locations',
       system: '/admin/settings',
-      users: '/admin/users',
+      users: '/admin/users', // This path is still valid for a potential separate user management, but 'employees' is for the main employee list.
       data: '/admin/export',
       security: '/admin/security',
       help: '/admin/help',
     } : {
       dashboard: '/dashboard',
-      attendance: '/check-in', // Changed from /attendance to /check-in
+      attendance: '/check-in',
       history: '/history',
       profile: '/profile',
     };
@@ -86,13 +86,13 @@ export function useNavigation(userRole: UserRole = 'employee') {
 
 function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
   if (userRole === 'admin') {
-    if (pathname.includes('/admin/employees')) return 'employees';
-    if (pathname.includes('/admin/attendance')) return 'monitoring';
-    if (pathname.includes('/admin/reports')) return 'reports';
-    if (pathname.includes('/admin/employee-approval')) return 'employee-approval'; // New path check
+    if (pathname.includes('/admin/employees')) return 'employees'; // Matches new AdminEmployeesPage
+    if (pathname.includes('/admin/attendance')) return 'monitoring'; // Matches new AdminLiveMonitor
+    if (pathname.includes('/admin/reports')) return 'reports'; // Matches new AdminReportsPage
+    if (pathname.includes('/admin/employee-approval')) return 'employee-approval';
     if (pathname.includes('/admin/locations')) return 'locations';
     if (pathname.includes('/admin/settings')) return 'system';
-    if (pathname.includes('/admin/users')) return 'users';
+    if (pathname.includes('/admin/users')) return 'users'; // Keep this for now, if a separate user management page is intended
     if (pathname.includes('/admin/export')) return 'data';
     if (pathname.includes('/admin/security')) return 'security';
     if (pathname.includes('/admin/help')) return 'help';

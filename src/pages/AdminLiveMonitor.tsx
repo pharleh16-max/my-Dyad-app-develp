@@ -3,9 +3,9 @@ import { useAuthState } from "@/hooks/useAuthState";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
-import { Users2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 
-export default function AdminUserManagement() {
+export default function AdminLiveMonitor() {
   const { profile } = useAuthState();
   const isMobile = useIsMobile();
   const {
@@ -22,7 +22,7 @@ export default function AdminUserManagement() {
 
   return (
     <AdminLayout
-      pageTitle="User Management"
+      pageTitle="Live Attendance Monitor"
       isMobile={isMobile}
       activeTab={activeTab}
       sideMenuOpen={sideMenuOpen}
@@ -36,20 +36,20 @@ export default function AdminUserManagement() {
       <div className="space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            User Management
+            Live Attendance Monitor
           </h1>
           <p className="text-muted-foreground">
-            Manage employee accounts, roles, and access permissions.
+            Monitor real-time employee check-ins and check-outs.
           </p>
         </div>
 
         <Card className="status-card p-6 flex flex-col items-center text-center">
-          <Users2 className="w-12 h-12 text-primary mb-4" />
+          <MapPin className="w-12 h-12 text-primary mb-4" />
           <h3 className="font-semibold text-xl text-foreground">
-            Employee Accounts
+            Real-time Monitoring
           </h3>
           <p className="text-muted-foreground mt-2">
-            This page is under construction. Here you will be able to view, edit, activate, suspend, and delete employee accounts, as well as manage their roles and biometric enrollment status.
+            This page is under construction. Here you will see a live map and list of employees, their current status, and location.
           </p>
         </Card>
       </div>

@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   BarChart3,
-  Users,
+  Users, // Used for 'Employees'
   MapPin,
-  Clock,
+  Clock, // Used for 'Reports'
   Settings,
   Shield,
   Database,
@@ -16,14 +16,13 @@ import {
   UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigation, UserRole } from "@/hooks/useNavigation"; // Keep useNavigation for internal navigation logic
-import { useAuthState } from "@/hooks/useAuthState"; // Keep useAuthState for signOut
+import { useNavigation, UserRole } from "@/hooks/useNavigation";
+import { useAuthState } from "@/hooks/useAuthState";
 
 interface AdminSidebarProps {
   onClose?: () => void;
   isDarkMode?: boolean;
   onThemeToggle?: () => void;
-  // activeTab and navigateToPath will be managed by useNavigation internally
 }
 
 interface AdminMenuItem {
@@ -36,20 +35,20 @@ interface AdminMenuItem {
 
 const adminSidebarItems: AdminMenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/admin/dashboard' },
-  { id: 'employees', label: 'Employees', icon: Users, path: '/admin/employees' },
-  { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' },
-  { id: 'reports', label: 'Reports', icon: Clock, path: '/admin/reports' },
+  { id: 'employees', label: 'Employees', icon: Users, path: '/admin/employees' }, // Points to AdminEmployeesPage
+  { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' }, // Points to AdminLiveMonitor
+  { id: 'reports', label: 'Reports', icon: Clock, path: '/admin/reports' }, // Points to AdminReportsPage
   { id: 'employee-approval', label: 'Employee Approval', icon: UserCheck, path: '/admin/employee-approval' },
   { id: 'locations', label: 'Manage Locations', icon: MapPin, path: '/admin/locations' },
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
-  { id: 'users', label: 'User Management', icon: Users, path: '/admin/users' },
+  // Removed 'User Management' as 'Employees' now covers general employee management
   { id: 'data', label: 'Data Export', icon: Database, path: '/admin/export' },
   { id: 'security', label: 'Security', icon: Shield, path: '/admin/security', badge: 'New' },
   { id: 'help', label: 'Help & Support', icon: HelpCircle, path: '/admin/help' },
 ];
 
 export function AdminSidebar({ onClose, isDarkMode, onThemeToggle }: AdminSidebarProps) {
-  const { activeTab, navigateToPath } = useNavigation("admin"); // AdminSidebar still needs its own navigation context
+  const { activeTab, navigateToPath } = useNavigation("admin");
   const { profile, signOut } = useAuthState();
 
   const handleItemClick = (path: string, id: string) => {

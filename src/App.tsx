@@ -20,12 +20,14 @@ const AttendanceHistory = React.lazy(() => import("./pages/AttendanceHistory"));
 const EmployeeProfile = React.lazy(() => import("./pages/EmployeeProfile"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const AdminEmployeeApproval = React.lazy(() => import("./pages/AdminEmployeeApproval"));
-const AdminManageLocations = React.lazy(() => import("./pages/AdminManageLocations")); // New import
-const AdminSystemSettings = React.lazy(() => import("./pages/AdminSystemSettings")); // New import
-const AdminUserManagement = React.lazy(() => import("./pages/AdminUserManagement")); // New import
-const AdminDataExport = React.lazy(() => import("./pages/AdminDataExport")); // New import
-const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity")); // New import
-const AdminHelpSupport = React.lazy(() => import("./pages/AdminHelpSupport")); // New import
+const AdminManageLocations = React.lazy(() => import("./pages/AdminManageLocations"));
+const AdminSystemSettings = React.lazy(() => import("./pages/AdminSystemSettings"));
+const AdminEmployeesPage = React.lazy(() => import("./pages/AdminEmployeesPage")); // Renamed import
+const AdminLiveMonitor = React.lazy(() => import("./pages/AdminLiveMonitor")); // New import
+const AdminReportsPage = React.lazy(() => import("./pages/AdminReportsPage")); // New import
+const AdminDataExport = React.lazy(() => import("./pages/AdminDataExport"));
+const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity"));
+const AdminHelpSupport = React.lazy(() => import("./pages/AdminHelpSupport"));
 
 const queryClient = new QueryClient();
 
@@ -95,9 +97,19 @@ const App = () => (
                   <AdminSystemSettings />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/users" element={
+              <Route path="/admin/employees" element={ {/* Updated path for AdminEmployeesPage */}
                 <ProtectedRoute requiredRole="admin">
-                  <AdminUserManagement />
+                  <AdminEmployeesPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/attendance" element={ {/* New route for AdminLiveMonitor */}
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLiveMonitor />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/reports" element={ {/* New route for AdminReportsPage */}
+                <ProtectedRoute requiredRole="admin">
+                  <AdminReportsPage />
                 </ProtectedRoute>
               } />
               <Route path="/admin/export" element={
