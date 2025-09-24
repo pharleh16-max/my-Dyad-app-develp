@@ -9,25 +9,27 @@ import { FingerprintScanner } from "@/components/attendance/FingerprintScanner";
 import { LocationStatus } from "@/components/attendance/LocationStatus";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthState } from "@/hooks/useAuthState";
+import { supabase } from "@/integrations/supabase/client";
 
 type CheckInStep = 'location' | 'biometric' | 'confirmation' | 'complete';
 
 export default function CheckIn() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuthState();
   const [currentStep, setCurrentStep] = useState<CheckInStep>('location');
   const [locationData, setLocationData] = useState<{
     latitude?: number;
     longitude?: number;
     address?: string;
-    accuracy?: number; // Added accuracy
+    accuracy?: number;
     verified: boolean;
   }>({ verified: false });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isVerifyingLocation, setIsVerifyingLocation] = useState(true); // New state for location verification
+  const [isVerifyingLocation, setIsVerifyingLocation] = useState(true);
 
   useEffect(() => {
-    // Start location verification automatically
     verifyLocation();
   }, []);
 
@@ -41,8 +43,8 @@ export default function CheckIn() {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
               address: "Main Office Building", // Mock address for display, can be reverse geocoded later
-              accuracy: position.coords.accuracy, // Store accuracy
-              verified: true // Assume verified if location is obtained
+              accuracy: position.coords.accuracy,
+              verified: true
             });
             setIsVerifyingLocation(false);
             setCurrentStep('biometric');
@@ -98,37 +100,49 @@ export default function CheckIn() {
   const handleConfirmCheckIn = async () => {
     setIsProcessing(true);
 
-    try {
-      // Here you would save the check-in data to Supabase
-      // const checkInData = {
-      //   user_id: user.id,
-      //   check_in_time: new Date().toISOString(),
-      //   location_latitude: locationData.latitude,
-      //   location_longitude: locationData.longitude,
-      //   location_address: locationData.address,
-      //   location_accuracy: locationData.accuracy,
-      //   verification_method: 'biometric'
-      // };
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "User not authenticated. Please log in again.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+      return;
+    }
 
-      setTimeout(() => {
-        setCurrentStep('complete');
-        setIsProcessing(false);
-        
-        toast({
-          title: "Check-in Successful!",
-          description: "You have been successfully checked in.",
+    try {
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .insert({
+          user_id: user.id,
+          check_in_time: new Date().toISOString(),
+          location_latitude: locationData.latitude,
+          location_longitude: locationData.longitude,
+          location_address: locationData.address,
+          location_accuracy: locationData.accuracy,
+          notes: "Biometric check-in" // Default note for now
         });
 
-        // Redirect to dashboard after successful check-in
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      }, 1000);
-    } catch (error) {
+      if (error) {
+        throw error;
+      }
+
+      setCurrentStep('complete');
+      setIsProcessing(false);
+      
+      toast({
+        title: "Check-in Successful!",
+        description: "You have been successfully checked in.",
+      });
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+    } catch (error: any) {
       setIsProcessing(false);
       toast({
         title: "Check-in Failed",
-        description: "Unable to complete check-in. Please try again.",
+        description: `Unable to complete check-in: ${error.message || 'An unknown error occurred.'}`,
         variant: "destructive",
       });
     }
@@ -254,7 +268,7 @@ export default function CheckIn() {
             <CheckCircle className="w-20 h-20 text-accent mx-auto" />
             
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">
+              <h2 className="2xl font-bold text-foreground">
                 Welcome to Work!
               </h2>
               <p className="text-muted-foreground">

@@ -11,33 +11,91 @@ import { FingerprintScanner } from "@/components/attendance/FingerprintScanner";
 import { LocationStatus } from "@/components/attendance/LocationStatus";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthState } from "@/hooks/useAuthState";
+import { supabase } from "@/integrations/supabase/client";
+import { differenceInHours, differenceInMinutes, parseISO } from "date-fns";
 
 type CheckOutStep = 'location' | 'work-summary' | 'biometric' | 'confirmation' | 'complete';
 
 export default function CheckOut() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuthState();
   const [currentStep, setCurrentStep] = useState<CheckOutStep>('location');
   const [workNotes, setWorkNotes] = useState('');
   const [locationData, setLocationData] = useState<{
     latitude?: number;
     longitude?: number;
     address?: string;
-    accuracy?: number; // Added accuracy
+    accuracy?: number;
     verified: boolean;
   }>({ verified: false });
-  const [workSession, setWorkSession] = useState({
-    startTime: '9:00 AM',
-    endTime: new Date().toLocaleTimeString(),
-    totalHours: 8.5,
-  });
+  const [workSession, setWorkSession] = useState<{
+    id?: string;
+    checkInTime?: string;
+    checkOutTime?: string;
+    totalHours: number;
+  }>({ totalHours: 0 });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isVerifyingLocation, setIsVerifyingLocation] = useState(true); // New state for location verification
+  const [isVerifyingLocation, setIsVerifyingLocation] = useState(true);
 
   useEffect(() => {
-    // Start location verification automatically
+    const fetchLatestCheckIn = async () => {
+      if (!user) return;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('id, check_in_time')
+        .eq('user_id', user.id)
+        .is('check_out_time', null) // Find open sessions
+        .gte('check_in_time', today.toISOString())
+        .lt('check_in_time', tomorrow.toISOString())
+        .order('check_in_time', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+        console.error('Error fetching latest check-in:', error);
+        toast({
+          title: "Error",
+          description: "Could not retrieve your last check-in. Please try again.",
+          variant: "destructive",
+        });
+        navigate('/dashboard'); // Redirect if no active session found
+        return;
+      }
+
+      if (data) {
+        const checkInDate = parseISO(data.check_in_time);
+        const now = new Date();
+        const hours = differenceInHours(now, checkInDate);
+        const minutes = differenceInMinutes(now, checkInDate) % 60;
+        const totalHours = hours + minutes / 60;
+
+        setWorkSession({
+          id: data.id,
+          checkInTime: checkInDate.toLocaleTimeString(),
+          checkOutTime: now.toLocaleTimeString(),
+          totalHours: parseFloat(totalHours.toFixed(2)),
+        });
+      } else {
+        toast({
+          title: "No Active Check-in",
+          description: "You are not currently checked in. Redirecting to dashboard.",
+          variant: "destructive",
+        });
+        navigate('/dashboard');
+      }
+    };
+
+    fetchLatestCheckIn();
     verifyLocation();
-  }, []);
+  }, [user, navigate, toast]);
 
   const verifyLocation = async () => {
     setIsVerifyingLocation(true);
@@ -49,8 +107,8 @@ export default function CheckOut() {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
               address: "Main Office Building", // Mock address for display, can be reverse geocoded later
-              accuracy: position.coords.accuracy, // Store accuracy
-              verified: true // Assume verified if location is obtained
+              accuracy: position.coords.accuracy,
+              verified: true
             });
             setIsVerifyingLocation(false);
             setCurrentStep('work-summary');
@@ -110,45 +168,56 @@ export default function CheckOut() {
   const handleConfirmCheckOut = async () => {
     setIsProcessing(true);
 
+    if (!user || !workSession.id) {
+      toast({
+        title: "Authentication Error",
+        description: "User not authenticated or no active session. Please log in again.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+      return;
+    }
+
     try {
-      // Here you would save the check-out data to Supabase
-      // const checkOutData = {
-      //   user_id: user.id,
-      //   check_out_time: new Date().toISOString(),
-      //   work_notes: workNotes,
-      //   total_hours: workSession.totalHours,
-      //   location_latitude: locationData.latitude,
-      //   location_longitude: locationData.longitude,
-      //   location_address: locationData.address,
-      //   location_accuracy: locationData.accuracy,
-      //   verification_method: 'biometric'
-      // };
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .update({
+          check_out_time: new Date().toISOString(),
+          notes: workNotes,
+          location_latitude: locationData.latitude,
+          location_longitude: locationData.longitude,
+          location_address: locationData.address,
+          location_accuracy: locationData.accuracy,
+        })
+        .eq('id', workSession.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setCurrentStep('complete');
+      setIsProcessing(false);
+      
+      toast({
+        title: "Check-out Successful!",
+        description: `Great work today! You worked ${formatHours(workSession.totalHours)} hours.`,
+      });
 
       setTimeout(() => {
-        setCurrentStep('complete');
-        setIsProcessing(false);
-        
-        toast({
-          title: "Check-out Successful!",
-          description: `Great work today! You worked ${workSession.totalHours} hours.`,
-        });
-
-        // Redirect to dashboard after successful check-out
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
-      }, 1000);
-    } catch (error) {
+        navigate('/dashboard');
+      }, 3000);
+    } catch (error: any) {
       setIsProcessing(false);
       toast({
         title: "Check-out Failed",
-        description: "Unable to complete check-out. Please try again.",
+        description: `Unable to complete check-out: ${error.message || 'An unknown error occurred.'}`,
         variant: "destructive",
       });
     }
   };
 
   const formatHours = (hours: number) => {
+    if (isNaN(hours) || hours < 0) return '0h 0m';
     const h = Math.floor(hours);
     const m = Math.floor((hours % 1) * 60);
     return `${h}h ${m}m`;
@@ -198,13 +267,13 @@ export default function CheckOut() {
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Started:</span>
                     <span className="text-sm font-medium text-foreground">
-                      {workSession.startTime}
+                      {workSession.checkInTime || '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Ending:</span>
                     <span className="text-sm font-medium text-foreground">
-                      {workSession.endTime}
+                      {workSession.checkOutTime || '-'}
                     </span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-2">
@@ -290,7 +359,7 @@ export default function CheckOut() {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">End Time:</span>
                   <span className="text-sm font-medium text-foreground">
-                    {workSession.endTime}
+                    {workSession.checkOutTime || '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
