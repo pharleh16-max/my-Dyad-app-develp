@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useNavigation } from "@/hooks/useNavigation";
@@ -119,7 +119,7 @@ export default function AdminEmployeeApproval() {
   };
 
   return (
-    <> {/* Added React.Fragment here */}
+    <React.Fragment>
       <AdminLayout
         pageTitle="Employee Approval"
         isMobile={isMobile}
@@ -246,6 +246,6 @@ export default function AdminEmployeeApproval() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </> {/* Closed React.Fragment here */}
+    </React.Fragment>
   );
 }
