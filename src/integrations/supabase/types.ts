@@ -28,7 +28,6 @@ export type Database = {
           role: string
           status: string
           updated_at: string | null
-          user_id: string
         }
         Insert: {
           biometric_enrolled?: boolean | null
@@ -43,7 +42,6 @@ export type Database = {
           role?: string
           status?: string
           updated_at?: string | null
-          user_id: string
         }
         Update: {
           biometric_enrolled?: boolean | null
@@ -58,7 +56,6 @@ export type Database = {
           role?: string
           status?: string
           updated_at?: string | null
-          user_id?: string
         }
         Relationships: []
       }
