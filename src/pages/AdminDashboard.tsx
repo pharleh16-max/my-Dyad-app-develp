@@ -4,6 +4,9 @@ import { useNavigation } from "@/hooks/useNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
 import { Users, Clock, MapPin, BarChart3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function AdminDashboard() {
   const { profile } = useAuthState();
@@ -18,7 +21,64 @@ export default function AdminDashboard() {
   } = useNavigation("admin");
 
   const userName = profile?.full_name || "Admin";
-  const userRole = profile?.role || "admin"; // Assuming default admin if profile not fully loaded
+  const userRole = profile?.role || "admin";
+
+  // Fetch total employee count
+  const { data: totalEmployees, isLoading: isLoadingEmployees, error: employeesError } = useQuery<number>({
+    queryKey: ['totalEmployees'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      return count || 0;
+    },
+  });
+
+  if (isLoadingEmployees) {
+    return (
+      <AdminLayout
+        pageTitle="Admin Dashboard"
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToTab={navigateToTab}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (employeesError) {
+    return (
+      <AdminLayout
+        pageTitle="Admin Dashboard"
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToTab={navigateToTab}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
+        <div className="text-center text-destructive p-6">
+          Error loading employee data: {employeesError.message}
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout
@@ -48,7 +108,7 @@ export default function AdminDashboard() {
           <Card className="status-card p-6 flex flex-col items-center text-center">
             <Users className="w-10 h-10 text-primary mb-3" />
             <h3 className="font-semibold text-lg text-foreground">Total Employees</h3>
-            <p className="text-3xl font-bold text-primary">125</p>
+            <p className="text-3xl font-bold text-primary">{totalEmployees}</p>
           </Card>
           <Card className="status-card p-6 flex flex-col items-center text-center">
             <Clock className="w-10 h-10 text-accent mb-3" />
