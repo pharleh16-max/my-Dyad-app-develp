@@ -19,6 +19,7 @@ const CheckOut = React.lazy(() => import("./pages/CheckOut"));
 const AttendanceHistory = React.lazy(() => import("./pages/AttendanceHistory"));
 const EmployeeProfile = React.lazy(() => import("./pages/EmployeeProfile"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const AdminEmployeeApproval = React.lazy(() => import("./pages/AdminEmployeeApproval")); // New import
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,11 @@ const App = () => (
               <Route path="/admin/dashboard" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/employee-approval" element={ {/* New Admin Route */}
+                <ProtectedRoute requiredRole="admin">
+                  <AdminEmployeeApproval />
                 </ProtectedRoute>
               } />
               {/* Add other admin routes here as they are created */}

@@ -12,7 +12,8 @@ import {
   HelpCircle,
   LogOut,
   Moon,
-  Sun
+  Sun,
+  UserCheck // New import
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
@@ -37,6 +38,7 @@ const adminSidebarItems: AdminMenuItem[] = [
   { id: 'employees', label: 'Employees', icon: Users, path: '/admin/employees' },
   { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' },
   { id: 'reports', label: 'Reports', icon: Clock, path: '/admin/reports' },
+  { id: 'employee-approval', label: 'Employee Approval', icon: UserCheck, path: '/admin/employee-approval' }, // New item
   { id: 'locations', label: 'Manage Locations', icon: MapPin, path: '/admin/locations' },
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   { id: 'users', label: 'User Management', icon: Users, path: '/admin/users' },

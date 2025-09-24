@@ -45,6 +45,7 @@ export function useNavigation(userRole: UserRole = 'employee') {
       employees: '/admin/employees',
       monitoring: '/admin/attendance',
       reports: '/admin/reports',
+      'employee-approval': '/admin/employee-approval', // New route mapping
       locations: '/admin/locations',
       system: '/admin/settings',
       users: '/admin/users',
@@ -88,6 +89,7 @@ function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
     if (pathname.includes('/admin/employees')) return 'employees';
     if (pathname.includes('/admin/attendance')) return 'monitoring';
     if (pathname.includes('/admin/reports')) return 'reports';
+    if (pathname.includes('/admin/employee-approval')) return 'employee-approval'; // New path check
     if (pathname.includes('/admin/locations')) return 'locations';
     if (pathname.includes('/admin/settings')) return 'system';
     if (pathname.includes('/admin/users')) return 'users';
