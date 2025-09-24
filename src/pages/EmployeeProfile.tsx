@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Camera, Fingerprint, Bell, Shield, Edit, User, Phone, Building, MapPin } from "lucide-react";
+import { useState, useRef } from "react";
+import { Camera, Fingerprint, Bell, Shield, Edit, User, Phone, Building, MapPin, Lock, Mail, Upload, Save, AlertCircle } from "lucide-react";
 import { EmployeeLayout } from "@/components/layout/EmployeeLayout";
 import { Header } from "@/components/layout/Header";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
@@ -14,18 +14,35 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAuthState } from "@/hooks/useAuthState";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function EmployeeProfile() {
-  const { profile } = useAuthState();
+  const { profile, user, refetchProfile } = useAuthState();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState({
     full_name: profile?.full_name || '',
+    email: user?.email || '', // Include email in edit form
     phone_number: profile?.phone_number || '',
     department: profile?.department || '',
     location: profile?.location || ''
   });
+
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: '',
+    confirmNewPassword: '',
+  });
+  const [passwordErrors, setPasswordErrors] = useState<{ [key: string]: string }>({});
+
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [notifications, setNotifications] = useState({
     checkInReminder: true,
     checkOutReminder: true,
@@ -33,29 +50,165 @@ export default function EmployeeProfile() {
     systemUpdates: true
   });
 
-  const handleSaveProfile = async () => {
-    try {
-      // Here you would update the profile in Supabase
-      // await supabase.from('profiles').update(editForm).eq('id', profile?.id);
-      
+  // Update form state when profile or user data changes
+  useState(() => {
+    setEditForm({
+      full_name: profile?.full_name || '',
+      email: user?.email || '',
+      phone_number: profile?.phone_number || '',
+      department: profile?.department || '',
+      location: profile?.location || ''
+    });
+  }, [profile, user]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updates: Partial<typeof editForm>) => {
+      if (!user) throw new Error("User not authenticated.");
+
+      // Update profile table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: updates.full_name,
+          phone_number: updates.phone_number,
+          department: updates.department,
+          location: updates.location,
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Update auth.users email if changed
+      if (updates.email && updates.email !== user.email) {
+        const { error: userError } = await supabase.auth.updateUser({ email: updates.email });
+        if (userError) throw userError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      refetchProfile(); // Re-fetch profile to get latest data
       toast({
         title: "Profile Updated",
         description: "Your profile information has been successfully updated.",
       });
-      setIsEditing(false);
-    } catch (error) {
+      setIsEditingProfile(false);
+    },
+    onError: (error: any) => {
       toast({
         title: "Update Failed",
-        description: "Unable to update profile. Please try again.",
+        description: `Unable to update profile: ${error.message}`,
         variant: "destructive",
       });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (newPassword: string) => {
+      if (!user) throw new Error("User not authenticated.");
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully changed.",
+      });
+      setIsChangingPassword(false);
+      setPasswordForm({ newPassword: '', confirmNewPassword: '' });
+      setPasswordErrors({});
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Password Change Failed",
+        description: `Unable to change password: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const uploadProfilePhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user) throw new Error("User not authenticated.");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload file to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true, // Overwrite if file exists
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+      
+      const publicUrl = publicUrlData.publicUrl;
+
+      // Update profile_photo_url in profiles table
+      const { error: updateProfileError } = await supabase
+        .from('profiles')
+        .update({ profile_photo_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateProfileError) throw updateProfileError;
+
+      return publicUrl;
+    },
+    onSuccess: (publicUrl) => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      refetchProfile(); // Re-fetch profile to get latest data
+      toast({
+        title: "Profile Picture Updated",
+        description: "Your profile picture has been successfully uploaded.",
+      });
+      setIsUploadingPhoto(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Upload Failed",
+        description: `Unable to upload profile picture: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate(editForm);
+  };
+
+  const handleChangePassword = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (passwordForm.newPassword.length < 6) {
+      newErrors.newPassword = 'Password must be at least 6 characters.';
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+      newErrors.confirmNewPassword = 'Passwords do not match.';
+    }
+    setPasswordErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      changePasswordMutation.mutate(passwordForm.newPassword);
+    }
+  };
+
+  const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      uploadProfilePhotoMutation.mutate(file);
     }
   };
 
   const handleFingerprintEnrollment = () => {
     toast({
-      title: "Fingerprint Enrollment",
-      description: "Please use the biometric scanner to enroll your fingerprint.",
+      title: "Biometric Enrollment",
+      description: "Please use the biometric scanner to enroll your fingerprint. (Feature under development)",
     });
   };
 
@@ -82,7 +235,7 @@ export default function EmployeeProfile() {
 
   return (
     <>
-      <Header title="Profile" />
+      <Header title="Profile Settings" />
       <EmployeeLayout>
         <div className="space-y-6">
           {/* Profile Header */}
@@ -90,18 +243,63 @@ export default function EmployeeProfile() {
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="relative">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={profile?.profile_photo_url} />
+                  <AvatarImage src={profile?.profile_photo_url || undefined} />
                   <AvatarFallback className="text-xl font-semibold">
                     {profile?.full_name ? getInitials(profile.full_name) : 'EMP'}
                   </AvatarFallback>
                 </Avatar>
-                <Button
-                  size="sm"
-                  className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                  variant="secondary"
-                >
-                  <Camera className="w-4 h-4" />
-                </Button>
+                <Dialog open={isUploadingPhoto} onOpenChange={setIsUploadingPhoto}>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                      variant="secondary"
+                    >
+                      <Camera className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Change Profile Picture</DialogTitle>
+                      <DialogDescription>
+                        Upload a new image for your profile.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <Input
+                        id="picture"
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handleProfilePictureChange}
+                        disabled={uploadProfilePhotoMutation.isPending}
+                      />
+                      {uploadProfilePhotoMutation.isPending && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <LoadingSpinner size="sm" /> Uploading...
+                        </div>
+                      )}
+                      {uploadProfilePhotoMutation.isError && (
+                        <p className="text-sm text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          {uploadProfilePhotoMutation.error?.message || "Upload failed."}
+                        </p>
+                      )}
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsUploadingPhoto(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => fileInputRef.current?.click()} 
+                        disabled={uploadProfilePhotoMutation.isPending}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Select & Upload
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
               
               <div>
@@ -133,7 +331,7 @@ export default function EmployeeProfile() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setIsEditing(true)}
+                onClick={() => setIsEditingProfile(true)}
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
@@ -151,6 +349,16 @@ export default function EmployeeProfile() {
                 </div>
               </div>
               
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium text-foreground">
+                    {user?.email || 'Not set'}
+                  </p>
+                </div>
+              </div>
+
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-muted-foreground" />
                 <div>
@@ -181,6 +389,70 @@ export default function EmployeeProfile() {
                 </div>
               </div>
             </div>
+          </Card>
+
+          {/* Password Management */}
+          <Card className="status-card">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-foreground">Password Management</h3>
+              <Dialog open={isChangingPassword} onOpenChange={setIsChangingPassword}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Lock className="w-4 h-4 mr-2" />
+                    Change Password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Change Password</DialogTitle>
+                    <DialogDescription>
+                      Enter your new password below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <Label htmlFor="new-password">New Password</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                      />
+                      {passwordErrors.newPassword && <p className="text-xs text-destructive mt-1">{passwordErrors.newPassword}</p>}
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                      <Input
+                        id="confirm-new-password"
+                        type="password"
+                        value={passwordForm.confirmNewPassword}
+                        onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
+                      />
+                      {passwordErrors.confirmNewPassword && <p className="text-xs text-destructive mt-1">{passwordErrors.confirmNewPassword}</p>}
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsChangingPassword(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleChangePassword} disabled={changePasswordMutation.isPending}>
+                      {changePasswordMutation.isPending ? (
+                        <LoadingSpinner size="sm" className="mr-2" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-2" />
+                      )}
+                      Save Password
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Update your account password for enhanced security.
+            </p>
           </Card>
 
           {/* Biometric Security */}
@@ -282,7 +554,7 @@ export default function EmployeeProfile() {
           </Card>
 
           {/* Edit Profile Dialog */}
-          <Dialog open={isEditing} onOpenChange={setIsEditing}>
+          <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Edit Profile</DialogTitle>
@@ -291,7 +563,7 @@ export default function EmployeeProfile() {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4">
+              <div className="space-y-4 py-4">
                 <div>
                   <Label htmlFor="full_name">Full Name</Label>
                   <Input
@@ -301,6 +573,16 @@ export default function EmployeeProfile() {
                   />
                 </div>
                 
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="phone_number">Phone Number</Label>
                   <Input
@@ -330,10 +612,15 @@ export default function EmployeeProfile() {
               </div>
               
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSaveProfile}>
+                <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending}>
+                  {updateProfileMutation.isPending ? (
+                    <LoadingSpinner size="sm" className="mr-2" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
                   Save Changes
                 </Button>
               </DialogFooter>
