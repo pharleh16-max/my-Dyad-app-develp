@@ -102,7 +102,8 @@ export default function AuthPage() {
           setErrors({ general: error.message });
         }
       } else {
-        setErrors({ success: 'Registration successful! Please check your email to verify your account.' });
+        // Updated success message
+        setErrors({ success: 'Registration successful! You can now sign in.' });
       }
     } catch (err) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
