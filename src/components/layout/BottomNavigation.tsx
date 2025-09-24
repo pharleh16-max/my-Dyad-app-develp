@@ -17,7 +17,7 @@ interface BottomNavigationProps {
 
 const employeeNavItems: NavItem[] = [
   { id: 'dashboard', label: 'Home', icon: Home, path: '/dashboard' },
-  { id: 'attendance', label: 'Check In/Out', icon: Clock, path: '/attendance' },
+  { id: 'attendance', label: 'Check In/Out', icon: Clock, path: '/check-in' }, // Corrected path
   { id: 'history', label: 'History', icon: History, path: '/history' },
   { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
 ];
@@ -47,7 +47,7 @@ export function BottomNavigation({
             <Button
               key={item.id}
               variant="ghost"
-              onClick={() => onItemClick(item.id)}
+              onClick={() => onItemClick(item.path)}
               className={cn(
                 "flex-col gap-1 h-full rounded-none border-none",
                 "text-xs font-medium transition-colors duration-200",
