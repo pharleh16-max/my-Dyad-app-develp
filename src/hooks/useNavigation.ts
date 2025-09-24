@@ -48,7 +48,7 @@ export function useNavigation(userRole: UserRole = 'employee') {
       'employee-approval': '/admin/employee-approval',
       locations: '/admin/locations',
       system: '/admin/settings',
-      users: '/admin/users', // This path is still valid for a potential separate user management, but 'employees' is for the main employee list.
+      // Removed 'users' entry
       data: '/admin/export',
       security: '/admin/security',
       help: '/admin/help',
@@ -92,7 +92,7 @@ function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
     if (pathname.includes('/admin/employee-approval')) return 'employee-approval';
     if (pathname.includes('/admin/locations')) return 'locations';
     if (pathname.includes('/admin/settings')) return 'system';
-    if (pathname.includes('/admin/users')) return 'users'; // Keep this for now, if a separate user management page is intended
+    // Removed 'users' entry
     if (pathname.includes('/admin/export')) return 'data';
     if (pathname.includes('/admin/security')) return 'security';
     if (pathname.includes('/admin/help')) return 'help';
