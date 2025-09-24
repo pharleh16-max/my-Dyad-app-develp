@@ -12,6 +12,7 @@ import CheckIn from "./pages/CheckIn";
 import CheckOut from "./pages/CheckOut";
 import AttendanceHistory from "./pages/AttendanceHistory";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import AdminDashboard from "./pages/AdminDashboard"; // Import AdminDashboard
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -56,11 +57,12 @@ const App = () => (
           } />
           
           {/* Protected Admin Routes */}
-          {/* <Route path="/admin/dashboard" element={
+          <Route path="/admin/dashboard" element={
             <ProtectedRoute requiredRole="admin">
               <AdminDashboard />
             </ProtectedRoute>
-          } /> */}
+          } />
+          {/* Add other admin routes here as they are created */}
           
           {/* Catch-all route - must be last */}
           <Route path="*" element={<NotFound />} />

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export type UserRole = 'employee' | 'admin';
@@ -18,6 +18,11 @@ export function useNavigation(userRole: UserRole = 'employee') {
     sideMenuOpen: false,
     userRole,
   });
+
+  // Update activeTab when location changes
+  useEffect(() => {
+    setState(prev => ({ ...prev, activeTab: getActiveTabFromPath(location.pathname, userRole) }));
+  }, [location.pathname, userRole]);
 
   const setActiveTab = useCallback((tab: string) => {
     setState(prev => ({ ...prev, activeTab: tab }));
@@ -40,9 +45,15 @@ export function useNavigation(userRole: UserRole = 'employee') {
       employees: '/admin/employees',
       monitoring: '/admin/attendance',
       reports: '/admin/reports',
+      locations: '/admin/locations',
+      system: '/admin/settings',
+      users: '/admin/users',
+      data: '/admin/export',
+      security: '/admin/security',
+      help: '/admin/help',
     } : {
       dashboard: '/dashboard',
-      attendance: '/attendance',
+      attendance: '/check-in', // Changed from /attendance to /check-in
       history: '/history',
       profile: '/profile',
     };
@@ -77,11 +88,17 @@ function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
     if (pathname.includes('/admin/employees')) return 'employees';
     if (pathname.includes('/admin/attendance')) return 'monitoring';
     if (pathname.includes('/admin/reports')) return 'reports';
-    return 'dashboard';
+    if (pathname.includes('/admin/locations')) return 'locations';
+    if (pathname.includes('/admin/settings')) return 'system';
+    if (pathname.includes('/admin/users')) return 'users';
+    if (pathname.includes('/admin/export')) return 'data';
+    if (pathname.includes('/admin/security')) return 'security';
+    if (pathname.includes('/admin/help')) return 'help';
+    return 'dashboard'; // Default for admin
   } else {
-    if (pathname.includes('/attendance')) return 'attendance';
+    if (pathname.includes('/check-in') || pathname.includes('/check-out')) return 'attendance';
     if (pathname.includes('/history')) return 'history';
     if (pathname.includes('/profile')) return 'profile';
-    return 'dashboard';
+    return 'dashboard'; // Default for employee
   }
 }
