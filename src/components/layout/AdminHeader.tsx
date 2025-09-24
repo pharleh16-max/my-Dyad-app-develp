@@ -1,24 +1,24 @@
 import { Header } from "@/components/layout/Header";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useNavigation } from "@/hooks/useNavigation";
-import { useAuthState } from "@/hooks/useAuthState";
+// Removed useIsMobile and useAuthState as props are passed from AdminLayout
+import { UserRole } from "@/hooks/useNavigation"; // Import UserRole type
 
 interface AdminHeaderProps {
   title: string;
+  onMenuClick?: () => void;
+  userRole: UserRole; // Add userRole prop
+  userName: string; // Add userName prop
 }
 
-export function AdminHeader({ title }: AdminHeaderProps) {
-  const isMobile = useIsMobile();
-  const { toggleSideMenu } = useNavigation("admin");
-  const { profile } = useAuthState();
-
+export function AdminHeader({ title, onMenuClick, userRole, userName }: AdminHeaderProps) {
+  // isMobile is determined by the parent (AdminLayout) and passed via onMenuClick's visibility
+  // profile is passed as userName and userRole
   return (
     <Header
       title={title}
-      showMenu={isMobile}
-      onMenuClick={toggleSideMenu}
-      userRole="admin"
-      userName={profile?.full_name || "Admin"}
+      showMenu={true} // Always show menu button in AdminHeader, its visibility is controlled by Header's internal logic (md:hidden)
+      onMenuClick={onMenuClick}
+      userRole={userRole}
+      userName={userName}
     />
   );
 }

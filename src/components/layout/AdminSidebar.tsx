@@ -13,16 +13,17 @@ import {
   LogOut,
   Moon,
   Sun,
-  UserCheck // New import
+  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigation } from "@/hooks/useNavigation";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useNavigation, UserRole } from "@/hooks/useNavigation"; // Keep useNavigation for internal navigation logic
+import { useAuthState } from "@/hooks/useAuthState"; // Keep useAuthState for signOut
 
 interface AdminSidebarProps {
   onClose?: () => void;
   isDarkMode?: boolean;
   onThemeToggle?: () => void;
+  // activeTab and navigateToPath will be managed by useNavigation internally
 }
 
 interface AdminMenuItem {
@@ -38,7 +39,7 @@ const adminSidebarItems: AdminMenuItem[] = [
   { id: 'employees', label: 'Employees', icon: Users, path: '/admin/employees' },
   { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' },
   { id: 'reports', label: 'Reports', icon: Clock, path: '/admin/reports' },
-  { id: 'employee-approval', label: 'Employee Approval', icon: UserCheck, path: '/admin/employee-approval' }, // New item
+  { id: 'employee-approval', label: 'Employee Approval', icon: UserCheck, path: '/admin/employee-approval' },
   { id: 'locations', label: 'Manage Locations', icon: MapPin, path: '/admin/locations' },
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   { id: 'users', label: 'User Management', icon: Users, path: '/admin/users' },
@@ -48,7 +49,7 @@ const adminSidebarItems: AdminMenuItem[] = [
 ];
 
 export function AdminSidebar({ onClose, isDarkMode, onThemeToggle }: AdminSidebarProps) {
-  const { activeTab, navigateToPath } = useNavigation("admin");
+  const { activeTab, navigateToPath } = useNavigation("admin"); // AdminSidebar still needs its own navigation context
   const { profile, signOut } = useAuthState();
 
   const handleItemClick = (path: string, id: string) => {
@@ -58,7 +59,7 @@ export function AdminSidebar({ onClose, isDarkMode, onThemeToggle }: AdminSideba
 
   const handleLogout = async () => {
     await signOut();
-    navigateToPath('/auth'); // Redirect to auth page after logout
+    navigateToPath('/auth');
     onClose?.();
   };
 
