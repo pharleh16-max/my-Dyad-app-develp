@@ -36,11 +36,9 @@ export function useAuthState() {
   });
 
   useEffect(() => {
-    console.log('useAuthState: Setting up auth state listener');
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('useAuthState: Auth state changed:', event, session);
         setAuthState(prev => ({
           ...prev,
           session,
@@ -51,21 +49,17 @@ export function useAuthState() {
 
         // Fetch user profile when authenticated
         if (session?.user) {
-          console.log('useAuthState: User session found, fetching profile...');
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
         } else {
-          console.log('useAuthState: No user session, clearing profile.');
           setAuthState(prev => ({ ...prev, profile: null }));
         }
       }
     );
 
-    console.log('useAuthState: Checking for existing session...');
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('useAuthState: Existing session check result:', session);
       setAuthState(prev => ({
         ...prev,
         session,
@@ -75,21 +69,16 @@ export function useAuthState() {
       }));
 
       if (session?.user) {
-        console.log('useAuthState: Existing user session found, fetching profile...');
         setTimeout(() => {
           fetchUserProfile(session.user.id);
         }, 0);
       }
     });
 
-    return () => {
-      console.log('useAuthState: Unsubscribing from auth state changes.');
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    console.log('fetchUserProfile: Attempting to fetch profile for userId:', userId);
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -98,13 +87,13 @@ export function useAuthState() {
         .maybeSingle();
 
       if (error) {
-        console.error('fetchUserProfile: Error fetching profile:', error);
+        console.error('Error fetching profile:', error);
         return;
       }
-      console.log('fetchUserProfile: Profile fetched:', profile);
+
       setAuthState(prev => ({ ...prev, profile: profile as Profile | null }));
     } catch (error) {
-      console.error('fetchUserProfile: Error fetching user profile:', error);
+      console.error('Error fetching user profile:', error);
     }
   };
 
