@@ -39,6 +39,7 @@ export function useAuthState() {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change event:', event, 'Session:', session);
         setAuthState(prev => ({
           ...prev,
           session,
@@ -60,6 +61,7 @@ export function useAuthState() {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session);
       setAuthState(prev => ({
         ...prev,
         session,
@@ -98,7 +100,7 @@ export function useAuthState() {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    // Removed emailRedirectTo as email confirmation is being disabled in Supabase settings
+    console.log('Calling Supabase signUp for:', email);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -108,21 +110,24 @@ export function useAuthState() {
         }
       }
     });
-
+    console.log('Supabase signUp response - data:', data, 'error:', error);
     return { data, error };
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('Calling Supabase signInWithPassword for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
+    console.log('Supabase signInWithPassword response - data:', data, 'error:', error);
     return { data, error };
   };
 
   const signOut = async () => {
+    console.log('Calling Supabase signOut');
     const { error } = await supabase.auth.signOut();
+    console.log('Supabase signOut response - error:', error);
     return { error };
   };
 

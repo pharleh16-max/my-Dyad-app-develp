@@ -68,32 +68,44 @@ export default function AuthPage() {
   };
 
   const handleSignIn = async () => {
-    if (!validateForm(false)) return;
+    console.log('Attempting sign-in...');
+    if (!validateForm(false)) {
+      console.log('Validation failed for sign-in.');
+      return;
+    }
 
     setIsSubmitting(true);
     setErrors({});
 
     try {
       const { error } = await signIn(formData.email, formData.password);
+      console.log('Supabase signIn response error:', error);
       
       if (error) {
         setErrors({ general: error.message });
       }
     } catch (err) {
+      console.error('Unexpected error during sign-in:', err);
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setIsSubmitting(false);
+      console.log('Sign-in process finished. isSubmitting set to false.');
     }
   };
 
   const handleSignUp = async () => {
-    if (!validateForm(true)) return;
+    console.log('Attempting sign-up...');
+    if (!validateForm(true)) {
+      console.log('Validation failed for sign-up.');
+      return;
+    }
 
     setIsSubmitting(true);
     setErrors({});
 
     try {
       const { error } = await signUp(formData.email, formData.password, formData.fullName);
+      console.log('Supabase signUp response error:', error);
       
       if (error) {
         if (error.message.includes('User already registered')) {
@@ -106,9 +118,11 @@ export default function AuthPage() {
         setErrors({ success: 'Registration successful! You can now sign in.' });
       }
     } catch (err) {
+      console.error('Unexpected error during sign-up:', err);
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setIsSubmitting(false);
+      console.log('Sign-up process finished. isSubmitting set to false.');
     }
   };
 
