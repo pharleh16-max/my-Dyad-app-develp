@@ -22,6 +22,7 @@ import {
   differenceInMinutes,
   subDays,
   addDays,
+  getDay, // Import getDay to check for weekends
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -143,10 +144,13 @@ export default function AdminReportsPage() {
       return { ...record, durationMinutes };
     });
 
-    const intervalDays = eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
-    const totalDaysInPeriod = intervalDays.length;
+    // Filter out Saturdays (6) and Sundays (0) from the interval days
+    const intervalDays = eachDayOfInterval({ start: dateRange.from, end: dateRange.to })
+      .filter(day => getDay(day) !== 0 && getDay(day) !== 6); // 0 = Sunday, 6 = Saturday
+
+    const totalWorkingDaysInPeriod = intervalDays.length;
     const actualDaysPresent = presentDays.size;
-    const actualDaysAbsent = totalDaysInPeriod - actualDaysPresent;
+    const actualDaysAbsent = totalWorkingDaysInPeriod - actualDaysPresent;
 
     const chartDataFormatted = intervalDays.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
