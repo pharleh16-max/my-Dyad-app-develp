@@ -110,6 +110,13 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_user_profile"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       locations: {
@@ -140,6 +147,45 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           radius_meters?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          id: string
+          system_name: string | null
+          daily_working_hours: number | null
+          late_check_in_tolerance_minutes: number | null
+          early_check_out_tolerance_minutes: number | null
+          geofence_radius_meters: number | null
+          allow_employee_self_registration: boolean | null
+          theme_mode: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          system_name?: string | null
+          daily_working_hours?: number | null
+          late_check_in_tolerance_minutes?: number | null
+          early_check_out_tolerance_minutes?: number | null
+          geofence_radius_meters?: number | null
+          allow_employee_self_registration?: boolean | null
+          theme_mode?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          system_name?: string | null
+          daily_working_hours?: number | null
+          late_check_in_tolerance_minutes?: number | null
+          early_check_out_tolerance_minutes?: number | null
+          geofence_radius_meters?: number | null
+          allow_employee_self_registration?: boolean | null
+          theme_mode?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
