@@ -1,5 +1,4 @@
 import { Header } from "@/components/layout/Header";
-// Removed useIsMobile and useAuthState as props are passed from AdminLayout
 import { UserRole } from "@/hooks/useNavigation"; // Import UserRole type
 
 interface AdminHeaderProps {
@@ -8,7 +7,6 @@ interface AdminHeaderProps {
   userRole: UserRole; // Add userRole prop
   userName: string; // Add userName prop
   onSettingsClick?: () => void; // New prop
-  onProfileClick?: () => void; // New prop
   onNotificationsClick?: () => void; // New prop
 }
 
@@ -18,11 +16,8 @@ export function AdminHeader({
   userRole, 
   userName,
   onSettingsClick,
-  onProfileClick,
   onNotificationsClick
 }: AdminHeaderProps) {
-  // isMobile is determined by the parent (AdminLayout) and passed via onMenuClick's visibility
-  // profile is passed as userName and userRole
   return (
     <Header
       title={title}
@@ -31,7 +26,6 @@ export function AdminHeader({
       userRole={userRole}
       userName={userName}
       onSettingsClick={onSettingsClick}
-      onProfileClick={onProfileClick}
       onNotificationsClick={onNotificationsClick}
     />
   );

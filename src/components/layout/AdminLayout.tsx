@@ -25,7 +25,6 @@ interface AdminLayoutProps {
   hasBottomNav?: boolean;
   hasHeader?: boolean;
   onSettingsClick?: () => void; // New prop
-  onProfileClick?: () => void; // New prop
   onNotificationsClick?: () => void; // New prop
 }
 
@@ -47,7 +46,6 @@ export function AdminLayout({
   hasBottomNav = true,
   hasHeader = true,
   onSettingsClick,
-  onProfileClick,
   onNotificationsClick
 }: AdminLayoutProps) {
   const { toast } = useToast(); // Initialize useToast
@@ -55,14 +53,6 @@ export function AdminLayout({
   // Default handlers if not provided by parent
   const defaultOnSettingsClick = onSettingsClick || (() => {
     navigateToPath('/admin/settings');
-  });
-  const defaultOnProfileClick = onProfileClick || (() => {
-    // For admin, profile might be a general admin profile or their own.
-    // For now, we'll navigate to system settings or show a toast.
-    toast({
-      title: "Admin Profile",
-      description: "Admin profile management is typically handled via employee management or system settings.",
-    });
   });
   const defaultOnNotificationsClick = onNotificationsClick || (() => {
     toast({
@@ -80,7 +70,6 @@ export function AdminLayout({
           userRole={userRole}
           userName={userName}
           onSettingsClick={defaultOnSettingsClick}
-          onProfileClick={defaultOnProfileClick}
           onNotificationsClick={defaultOnNotificationsClick}
         />
       )}

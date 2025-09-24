@@ -1,6 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, User, Settings } from "lucide-react";
+import { Menu, Bell, User, Settings, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuthState } from "@/hooks/useAuthState"; // Import useAuthState
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 interface HeaderProps {
   title: string;
@@ -9,9 +19,8 @@ interface HeaderProps {
   showNotifications?: boolean;
   notificationCount?: number;
   userRole?: 'employee' | 'admin';
-  onSettingsClick?: () => void; // New prop
-  onProfileClick?: () => void; // New prop
-  onNotificationsClick?: () => void; // New prop
+  onSettingsClick?: () => void;
+  onNotificationsClick?: () => void;
 }
 
 export function Header({ 
@@ -22,9 +31,26 @@ export function Header({
   notificationCount = 0,
   userRole = 'employee',
   onSettingsClick,
-  onProfileClick,
   onNotificationsClick
 }: HeaderProps) {
+  const { signOut, profile } = useAuthState();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  const handleProfileSettingsClick = () => {
+    if (userRole === 'admin') {
+      navigate('/admin/settings'); // Admins might go to system settings or a dedicated admin profile page
+    } else {
+      navigate('/profile'); // Employees go to their profile page
+    }
+  };
+
+  const displayUserName = profile?.full_name || (userRole === 'admin' ? 'Administrator' : 'Employee');
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-sm">
       <div className="flex h-16 items-center justify-between px-4">
@@ -66,13 +92,35 @@ export function Header({
             </Button>
           )}
           
-          <Button variant="ghost" size="icon" onClick={onSettingsClick}>
-            <Settings className="h-5 w-5" />
-          </Button>
-          
-          <Button variant="ghost" size="icon" onClick={onProfileClick}>
-            <User className="h-5 w-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{displayUserName}</p>
+                  {profile?.email && (
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {profile.email}
+                    </p>
+                  )}
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleProfileSettingsClick}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
