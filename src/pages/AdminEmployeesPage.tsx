@@ -283,7 +283,7 @@ export default function AdminEmployeesPage() {
                             {employee.biometric_enrolled ? (
                               <CheckCircle className="w-4 h-4 text-accent" />
                             ) : (
-                              <Fingerprint className="w-4 h-4 text-muted-foreground" />
+                              <Fingerprint className="w-4 h-4 text-destructive" />
                             )}
                           </TableCell>
                           <TableCell className="text-right flex gap-2 justify-end">
