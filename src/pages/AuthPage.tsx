@@ -10,9 +10,11 @@ import { Fingerprint, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmployeeLayout } from '@/components/layout/EmployeeLayout';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 export default function AuthPage() {
   const { signIn, signUp, isAuthenticated, isLoading, user, profile } = useAuthState();
+  const { toast } = useToast(); // Initialize useToast
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,7 +23,6 @@ export default function AuthPage() {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showBiometric, setShowBiometric] = useState(false);
 
   // Redirect if already authenticated and profile is loaded
   if (isAuthenticated && user && profile) {
@@ -105,7 +106,7 @@ export default function AuthPage() {
 
     try {
       const { error } = await signUp(formData.email, formData.password, formData.fullName);
-      console.log('Supabase signUp response error:', error);
+      console.log('Supabase signUp response - data:', data, 'error:', error);
       
       if (error) {
         if (error.message.includes('User already registered')) {
@@ -127,22 +128,53 @@ export default function AuthPage() {
   };
 
   const handleBiometricAuth = async () => {
-    setShowBiometric(true);
-    
+    setIsSubmitting(true);
+    setErrors({});
+
     // Check if WebAuthn is supported
     if (!navigator.credentials || !window.PublicKeyCredential) {
-      setErrors({ general: 'Biometric authentication is not supported on this device.' });
-      setShowBiometric(false);
+      toast({
+        title: "Biometric Not Supported",
+        description: "Your device or browser does not support biometric authentication (WebAuthn).",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      // This would be implemented with actual WebAuthn API in production
-      setErrors({ general: 'Biometric authentication will be available after initial setup. Please sign in with email/password first.' });
+      // This is a client-side simulation.
+      // A real WebAuthn implementation would involve:
+      // 1. Requesting a challenge from your backend.
+      // 2. Calling navigator.credentials.get() with the challenge.
+      // 3. Sending the credential back to your backend for verification.
+      // 4. Backend authenticates the user and returns a session.
+
+      toast({
+        title: "Biometric Login (Simulated)",
+        description: "This is a client-side demonstration. A full, secure biometric login requires server-side WebAuthn integration.",
+      });
+
+      // Simulate a successful biometric login after a delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real scenario, if successful, you would then sign in the user
+      // For this simulation, we'll just show a success message.
+      toast({
+        title: "Biometric Scan Complete",
+        description: "Simulated biometric authentication successful. Please use email/password for actual login.",
+        variant: "default",
+      });
+
     } catch (error) {
-      setErrors({ general: 'Biometric authentication failed. Please try again.' });
+      console.error('Simulated biometric authentication failed:', error);
+      toast({
+        title: "Biometric Authentication Failed",
+        description: "The simulated biometric authentication failed. Please try again or use email/password.",
+        variant: "destructive",
+      });
     } finally {
-      setShowBiometric(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -165,19 +197,19 @@ export default function AuthPage() {
           <CardContent className="pt-6">
             <Button
               onClick={handleBiometricAuth}
-              disabled={showBiometric}
+              disabled={isSubmitting}
               className="w-full btn-attendance"
               size="lg"
             >
-              {showBiometric ? (
+              {isSubmitting ? (
                 <LoadingSpinner size="sm" className="mr-2" />
               ) : (
                 <Fingerprint className="w-5 h-5 mr-2" />
               )}
-              {showBiometric ? 'Scanning...' : 'Quick Biometric Login'}
+              {isSubmitting ? 'Scanning...' : 'Quick Biometric Login'}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              Use your fingerprint for instant access
+              Use your fingerprint for instant access (Client-side simulation)
             </p>
           </CardContent>
         </Card>
