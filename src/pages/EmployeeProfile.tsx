@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { Camera, Fingerprint, Bell, Shield, Edit, User, Phone, Building, MapPin, Lock, Mail, Upload, Save, AlertCircle } from "lucide-react";
 import { EmployeeLayout } from "@/components/layout/EmployeeLayout";
-import { Header } from "@/components/layout/Header";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { Header } from "@/components/layout/Header"; // Keep Header import for title prop
+import { BottomNavigation } from "@/components/layout/BottomNavigation"; // Keep BottomNavigation import for activeItem prop
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,11 +17,27 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useNavigation } from "@/hooks/useNavigation"; // Import useNavigation
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 export default function EmployeeProfile() {
   const { profile, user, refetchProfile } = useAuthState();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Keep for direct navigation if needed, but prefer navigateToPath
+
+  const isMobile = useIsMobile();
+  const {
+    activeTab,
+    sideMenuOpen,
+    toggleSideMenu,
+    closeSideMenu,
+    navigateToTab,
+    navigateToPath,
+  } = useNavigation("employee");
+
+  const userName = profile?.full_name || "Employee";
+  const userRole = profile?.role || "employee";
+
   const queryClient = useQueryClient();
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -213,20 +229,7 @@ export default function EmployeeProfile() {
   };
 
   const handleNavigation = (itemId: string) => {
-    switch (itemId) {
-      case 'dashboard':
-        navigate('/dashboard');
-        break;
-      case 'attendance':
-        navigate('/check-in');
-        break;
-      case 'history':
-        navigate('/history');
-        break;
-      case 'profile':
-        navigate('/profile');
-        break;
-    }
+    navigateToPath(`/${itemId}`); // Use navigateToPath
   };
 
   const getInitials = (name: string) => {
@@ -234,241 +237,249 @@ export default function EmployeeProfile() {
   };
 
   return (
-    <>
-      <Header title="Profile Settings" />
-      <EmployeeLayout>
-        <div className="space-y-6">
-          {/* Profile Header */}
-          <Card className="status-card">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="relative">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={profile?.profile_photo_url || undefined} />
-                  <AvatarFallback className="text-xl font-semibold">
-                    {profile?.full_name ? getInitials(profile.full_name) : 'EMP'}
-                  </AvatarFallback>
-                </Avatar>
-                <Dialog open={isUploadingPhoto} onOpenChange={setIsUploadingPhoto}>
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                      variant="secondary"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Change Profile Picture</DialogTitle>
-                      <DialogDescription>
-                        Upload a new image for your profile.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <Input
-                        id="picture"
-                        type="file"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        onChange={handleProfilePictureChange}
-                        disabled={uploadProfilePhotoMutation.isPending}
-                      />
-                      {uploadProfilePhotoMutation.isPending && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <LoadingSpinner size="sm" /> Uploading...
-                        </div>
-                      )}
-                      {uploadProfilePhotoMutation.isError && (
-                        <p className="text-sm text-destructive flex items-center gap-1">
-                          <AlertCircle className="w-4 h-4" />
-                          {uploadProfilePhotoMutation.error?.message || "Upload failed."}
-                        </p>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsUploadingPhoto(false)}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={() => fileInputRef.current?.click()} 
-                        disabled={uploadProfilePhotoMutation.isPending}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Select & Upload
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
-              <div>
-                <h2 className="text-xl font-bold text-foreground">
-                  {profile?.full_name || 'Employee Name'}
-                </h2>
-                <p className="text-muted-foreground">
-                  {profile?.employee_id || 'EMP001'}
-                </p>
-                <div className="flex justify-center mt-2">
-                  <Badge 
-                    className={
-                      profile?.status === 'active' 
-                        ? 'bg-accent/10 text-accent border-accent/20' 
-                        : 'bg-secondary/10 text-secondary border-secondary/20'
-                    }
-                  >
-                    {profile?.status || 'Pending'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Personal Information */}
-          <Card className="status-card">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-foreground">Personal Information</h3>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setIsEditingProfile(true)}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <User className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Full Name</p>
-                  <p className="font-medium text-foreground">
-                    {profile?.full_name || 'Not set'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium text-foreground">
-                    {user?.email || 'Not set'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone Number</p>
-                  <p className="font-medium text-foreground">
-                    {profile?.phone_number || 'Not set'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Building className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Department</p>
-                  <p className="font-medium text-foreground">
-                    {profile?.department || 'Not assigned'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Location</p>
-                  <p className="font-medium text-foreground">
-                    {profile?.location || 'Not set'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Password Management */}
-          <Card className="status-card">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-foreground">Password Management</h3>
-              <Dialog open={isChangingPassword} onOpenChange={setIsChangingPassword}>
+    <EmployeeLayout
+      isMobile={isMobile}
+      activeTab={activeTab}
+      sideMenuOpen={sideMenuOpen}
+      toggleSideMenu={toggleSideMenu}
+      closeSideMenu={closeSideMenu}
+      navigateToPath={navigateToPath}
+      userName={userName}
+      userRole={userRole}
+      hasBottomNav={true}
+      hasHeader={true}
+    >
+      <div className="space-y-6">
+        {/* Profile Header */}
+        <Card className="status-card">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="relative">
+              <Avatar className="w-24 h-24">
+                <AvatarImage src={profile?.profile_photo_url || undefined} />
+                <AvatarFallback className="text-xl font-semibold">
+                  {profile?.full_name ? getInitials(profile.full_name) : 'EMP'}
+                </AvatarFallback>
+              </Avatar>
+              <Dialog open={isUploadingPhoto} onOpenChange={setIsUploadingPhoto}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Lock className="w-4 h-4 mr-2" />
-                    Change Password
+                  <Button
+                    size="sm"
+                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                    variant="secondary"
+                  >
+                    <Camera className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Change Password</DialogTitle>
+                    <DialogTitle>Change Profile Picture</DialogTitle>
                     <DialogDescription>
-                      Enter your new password below.
+                      Upload a new image for your profile.
                     </DialogDescription>
                   </DialogHeader>
-                  
-                  <div className="space-y-4 py-4">
-                    <div>
-                      <Label htmlFor="new-password">New Password</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        value={passwordForm.newPassword}
-                        onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                      />
-                      {passwordErrors.newPassword && <p className="text-xs text-destructive mt-1">{passwordErrors.newPassword}</p>}
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                      <Input
-                        id="confirm-new-password"
-                        type="password"
-                        value={passwordForm.confirmNewPassword}
-                        onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
-                      />
-                      {passwordErrors.confirmNewPassword && <p className="text-xs text-destructive mt-1">{passwordErrors.confirmNewPassword}</p>}
-                    </div>
+                  <div className="grid gap-4 py-4">
+                    <Input
+                      id="picture"
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleProfilePictureChange}
+                      disabled={uploadProfilePhotoMutation.isPending}
+                    />
+                    {uploadProfilePhotoMutation.isPending && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <LoadingSpinner size="sm" /> Uploading...
+                      </div>
+                    )}
+                    {uploadProfilePhotoMutation.isError && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {uploadProfilePhotoMutation.error?.message || "Upload failed."}
+                      </p>
+                    )}
                   </div>
-                  
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsChangingPassword(false)}>
+                    <Button variant="outline" onClick={() => setIsUploadingPhoto(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleChangePassword} disabled={changePasswordMutation.isPending}>
-                      {changePasswordMutation.isPending ? (
-                        <LoadingSpinner size="sm" className="mr-2" />
-                      ) : (
-                        <Save className="w-4 h-4 mr-2" />
-                      )}
-                      Save Password
+                    <Button 
+                      onClick={() => fileInputRef.current?.click()} 
+                      disabled={uploadProfilePhotoMutation.isPending}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Select & Upload
                     </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Update your account password for enhanced security.
-            </p>
-          </Card>
-
-          {/* Biometric Security */}
-          <Card className="status-card">
-            <h3 className="font-semibold text-foreground mb-4">Biometric Security</h3>
             
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <Fingerprint className="w-5 h-5 text-muted-foreground" />
+            <div>
+              <h2 className="text-xl font-bold text-foreground">
+                {profile?.full_name || 'Employee Name'}
+              </h2>
+              <p className="text-muted-foreground">
+                {profile?.employee_id || 'EMP001'}
+              </p>
+              <div className="flex justify-center mt-2">
+                <Badge 
+                  className={
+                    profile?.status === 'active' 
+                        ? 'bg-accent/10 text-accent border-accent/20' 
+                        : 'bg-secondary/10 text-secondary border-secondary/20'
+                  }
+                >
+                  {profile?.status || 'Pending'}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Personal Information */}
+        <Card className="status-card">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-foreground">Personal Information</h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsEditingProfile(true)}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Full Name</p>
+                <p className="font-medium text-foreground">
+                  {profile?.full_name || 'Not set'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium text-foreground">
+                  {user?.email || 'Not set'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Phone className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Phone Number</p>
+                <p className="font-medium text-foreground">
+                  {profile?.phone_number || 'Not set'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Building className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Department</p>
+                <p className="font-medium text-foreground">
+                  {profile?.department || 'Not assigned'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Location</p>
+                <p className="font-medium text-foreground">
+                  {profile?.location || 'Not set'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Password Management */}
+        <Card className="status-card">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-foreground">Password Management</h3>
+            <Dialog open={isChangingPassword} onOpenChange={setIsChangingPassword}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Lock className="w-4 h-4 mr-2" />
+                  Change Password
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Change Password</DialogTitle>
+                  <DialogDescription>
+                    Enter your new password below.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4 py-4">
                   <div>
-                    <p className="font-medium text-foreground">Fingerprint</p>
-                    <p className="text-sm text-muted-foreground">
-                      {profile?.biometric_enrolled ? 'Enrolled and active' : 'Not enrolled'}
-                    </p>
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                    />
+                    {passwordErrors.newPassword && <p className="text-xs text-destructive mt-1">{passwordErrors.newPassword}</p>}
                   </div>
+                  
+                  <div>
+                    <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                    <Input
+                      id="confirm-new-password"
+                      type="password"
+                      value={passwordForm.confirmNewPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
+                    />
+                    {passwordErrors.confirmNewPassword && <p className="text-xs text-destructive mt-1">{passwordErrors.confirmNewPassword}</p>}
+                  </div>
+                </div>
+                
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsChangingPassword(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleChangePassword} disabled={changePasswordMutation.isPending}>
+                    {changePasswordMutation.isPending ? (
+                      <LoadingSpinner size="sm" className="mr-2" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    Save Password
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Update your account password for enhanced security.
+          </p>
+        </Card>
+
+        {/* Biometric Security */}
+        <Card className="status-card">
+          <h3 className="font-semibold text-foreground mb-4">Biometric Security</h3>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <Fingerprint className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium text-foreground">Fingerprint</p>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.biometric_enrolled ? 'Enrolled and active' : 'Not enrolled'}
+                  </p>
                 </div>
                 
                 <Button
@@ -627,8 +638,6 @@ export default function EmployeeProfile() {
             </DialogContent>
           </Dialog>
         </div>
-      </EmployeeLayout>
-      <BottomNavigation activeItem="profile" onItemClick={handleNavigation} />
-    </>
+    </EmployeeLayout>
   );
 }

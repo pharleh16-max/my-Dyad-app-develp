@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Clock, Fingerprint, CheckCircle } from "lucide-react";
 import { EmployeeLayout } from "@/components/layout/EmployeeLayout";
-import { Header } from "@/components/layout/Header";
+import { Header } from "@/components/layout/Header"; // Keep Header import for title prop
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,13 +14,28 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "@/hooks/useAuthState";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInHours, differenceInMinutes, parseISO } from "date-fns";
+import { useNavigation } from "@/hooks/useNavigation"; // Import useNavigation
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 type CheckOutStep = 'location' | 'work-summary' | 'biometric' | 'confirmation' | 'complete';
 
 export default function CheckOut() {
-  const navigate = useNavigate();
+  const { profile, user } = useAuthState(); // Get profile for userName and userRole
+  const isMobile = useIsMobile();
+  const {
+    activeTab,
+    sideMenuOpen,
+    toggleSideMenu,
+    closeSideMenu,
+    navigateToTab,
+    navigateToPath,
+  } = useNavigation("employee");
+
+  const userName = profile?.full_name || "Employee";
+  const userRole = profile?.role || "employee";
+
+  const navigate = useNavigate(); // Keep for direct navigation if needed, but prefer navigateToPath
   const { toast } = useToast();
-  const { user } = useAuthState();
   const [currentStep, setCurrentStep] = useState<CheckOutStep>('location');
   const [workNotes, setWorkNotes] = useState('');
   const [locationData, setLocationData] = useState<{
@@ -66,7 +81,7 @@ export default function CheckOut() {
           description: "Could not retrieve your last check-in. Please try again.",
           variant: "destructive",
         });
-        navigate('/dashboard'); // Redirect if no active session found
+        navigateToPath('/dashboard'); // Use navigateToPath
         return;
       }
 
@@ -89,13 +104,13 @@ export default function CheckOut() {
           description: "You are not currently checked in. Redirecting to dashboard.",
           variant: "destructive",
         });
-        navigate('/dashboard');
+        navigateToPath('/dashboard'); // Use navigateToPath
       }
     };
 
     fetchLatestCheckIn();
     verifyLocation();
-  }, [user, navigate, toast]);
+  }, [user, navigateToPath, toast]); // Use navigateToPath in dependency array
 
   const verifyLocation = async () => {
     setIsVerifyingLocation(true);
@@ -204,7 +219,7 @@ export default function CheckOut() {
       });
 
       setTimeout(() => {
-        navigate('/dashboard');
+        navigateToPath('/dashboard'); // Use navigateToPath
       }, 3000);
     } catch (error: any) {
       setIsProcessing(false);
@@ -432,59 +447,67 @@ export default function CheckOut() {
   };
 
   return (
-    <>
-      <Header title="Check Out" />
-      <EmployeeLayout>
-        <div className="space-y-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Check Out
-            </h1>
-            <p className="text-muted-foreground">
-              Complete your work day check-out process
-            </p>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="flex justify-center">
-            <div className="flex space-x-2">
-              {(['location', 'work-summary', 'biometric', 'confirmation'] as CheckOutStep[]).map((step, index) => (
-                <div
-                  key={step}
-                  className={`w-3 h-3 rounded-full transition-colors duration-200 ${
-                    currentStep === step || 
-                    (['location', 'work-summary', 'biometric', 'confirmation'] as CheckOutStep[]).indexOf(currentStep) > index
-                      ? 'bg-primary' 
-                      : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Step Content */}
-          {renderStepContent()}
-
-          {/* Back Button */}
-          {(currentStep === 'work-summary' || currentStep === 'biometric') && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (currentStep === 'biometric') {
-                    setCurrentStep('work-summary');
-                  } else {
-                    navigate('/dashboard');
-                  }
-                }}
-                disabled={isProcessing}
-              >
-                {currentStep === 'work-summary' ? 'Cancel' : 'Back'}
-              </Button>
-            </div>
-          )}
+    <EmployeeLayout
+      isMobile={isMobile}
+      activeTab={activeTab}
+      sideMenuOpen={sideMenuOpen}
+      toggleSideMenu={toggleSideMenu}
+      closeSideMenu={closeSideMenu}
+      navigateToPath={navigateToPath}
+      userName={userName}
+      userRole={userRole}
+      hasBottomNav={true}
+      hasHeader={true}
+    >
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Check Out
+          </h1>
+          <p className="text-muted-foreground">
+            Complete your work day check-out process
+          </p>
         </div>
-      </EmployeeLayout>
-    </>
+
+        {/* Progress Indicator */}
+        <div className="flex justify-center">
+          <div className="flex space-x-2">
+            {(['location', 'work-summary', 'biometric', 'confirmation'] as CheckOutStep[]).map((step, index) => (
+              <div
+                key={step}
+                className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+                  currentStep === step || 
+                  (['location', 'work-summary', 'biometric', 'confirmation'] as CheckOutStep[]).indexOf(currentStep) > index
+                    ? 'bg-primary' 
+                    : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Step Content */}
+        {renderStepContent()}
+
+        {/* Back Button */}
+        {(currentStep === 'work-summary' || currentStep === 'biometric') && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (currentStep === 'biometric') {
+                  setCurrentStep('work-summary');
+                } else {
+                  navigateToPath('/dashboard'); // Use navigateToPath
+                }
+              }}
+              disabled={isProcessing}
+            >
+              {currentStep === 'work-summary' ? 'Cancel' : 'Back'}
+            </Button>
+          </div>
+        )}
+      </div>
+    </EmployeeLayout>
   );
 }

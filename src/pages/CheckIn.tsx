@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Clock, Fingerprint, CheckCircle } from "lucide-react";
 import { EmployeeLayout } from "@/components/layout/EmployeeLayout";
-import { Header } from "@/components/layout/Header";
+import { Header } from "@/components/layout/Header"; // Keep Header import for title prop
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -11,13 +11,28 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "@/hooks/useAuthState";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigation } from "@/hooks/useNavigation"; // Import useNavigation
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 type CheckInStep = 'location' | 'biometric' | 'confirmation' | 'complete';
 
 export default function CheckIn() {
-  const navigate = useNavigate();
+  const { profile, user } = useAuthState(); // Get profile for userName and userRole
+  const isMobile = useIsMobile();
+  const {
+    activeTab,
+    sideMenuOpen,
+    toggleSideMenu,
+    closeSideMenu,
+    navigateToTab,
+    navigateToPath,
+  } = useNavigation("employee");
+
+  const userName = profile?.full_name || "Employee";
+  const userRole = profile?.role || "employee";
+
+  const navigate = useNavigate(); // Keep for direct navigation if needed, but prefer navigateToPath
   const { toast } = useToast();
-  const { user } = useAuthState();
   const [currentStep, setCurrentStep] = useState<CheckInStep>('location');
   const [locationData, setLocationData] = useState<{
     latitude?: number;
@@ -136,7 +151,7 @@ export default function CheckIn() {
       });
 
       setTimeout(() => {
-        navigate('/dashboard');
+        navigateToPath('/dashboard'); // Use navigateToPath
       }, 2000);
     } catch (error: any) {
       setIsProcessing(false);
@@ -288,53 +303,61 @@ export default function CheckIn() {
   };
 
   return (
-    <>
-      <Header title="Check In" />
-      <EmployeeLayout>
-        <div className="space-y-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Check In
-            </h1>
-            <p className="text-muted-foreground">
-              Follow the steps to complete your check-in
-            </p>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="flex justify-center">
-            <div className="flex space-x-2">
-              {(['location', 'biometric', 'confirmation'] as CheckInStep[]).map((step, index) => (
-                <div
-                  key={step}
-                  className={`w-3 h-3 rounded-full transition-colors duration-200 ${
-                    currentStep === step || 
-                    (['location', 'biometric', 'confirmation'] as CheckInStep[]).indexOf(currentStep) > index
-                      ? 'bg-primary' 
-                      : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Step Content */}
-          {renderStepContent()}
-
-          {/* Back Button */}
-          {currentStep === 'biometric' && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/dashboard')}
-                disabled={isProcessing}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
+    <EmployeeLayout
+      isMobile={isMobile}
+      activeTab={activeTab}
+      sideMenuOpen={sideMenuOpen}
+      toggleSideMenu={toggleSideMenu}
+      closeSideMenu={closeSideMenu}
+      navigateToPath={navigateToPath}
+      userName={userName}
+      userRole={userRole}
+      hasBottomNav={true}
+      hasHeader={true}
+    >
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Check In
+          </h1>
+          <p className="text-muted-foreground">
+            Follow the steps to complete your check-in
+          </p>
         </div>
-      </EmployeeLayout>
-    </>
+
+        {/* Progress Indicator */}
+        <div className="flex justify-center">
+          <div className="flex space-x-2">
+            {(['location', 'biometric', 'confirmation'] as CheckInStep[]).map((step, index) => (
+              <div
+                key={step}
+                className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+                  currentStep === step || 
+                  (['location', 'biometric', 'confirmation'] as CheckInStep[]).indexOf(currentStep) > index
+                    ? 'bg-primary' 
+                    : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Step Content */}
+        {renderStepContent()}
+
+        {/* Back Button */}
+        {currentStep === 'biometric' && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => navigateToPath('/dashboard')} // Use navigateToPath
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
+    </EmployeeLayout>
   );
 }

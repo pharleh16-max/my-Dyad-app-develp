@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { MapPin, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { EmployeeLayout } from "@/components/layout/EmployeeLayout";
-import { Header } from "@/components/layout/Header";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { Header } from "@/components/layout/Header"; // Keep Header import for title prop
+import { BottomNavigation } from "@/components/layout/BottomNavigation"; // Keep BottomNavigation import for activeItem prop
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuthState } from "@/hooks/useAuthState";
@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { differenceInHours, differenceInMinutes, format, parseISO, startOfDay } from "date-fns";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useNavigation } from "@/hooks/useNavigation"; // Import useNavigation
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 interface AttendanceRecord {
   id: string;
@@ -24,7 +26,20 @@ interface AttendanceRecord {
 
 export default function EmployeeDashboard() {
   const { profile, user, isLoading: authLoading } = useAuthState();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Keep for direct navigation if needed, but prefer navigateToPath
+
+  const isMobile = useIsMobile();
+  const {
+    activeTab,
+    sideMenuOpen,
+    toggleSideMenu,
+    closeSideMenu,
+    navigateToTab,
+    navigateToPath,
+  } = useNavigation("employee");
+
+  const userName = profile?.full_name || "Employee";
+  const userRole = profile?.role || "employee";
 
   const today = startOfDay(new Date());
   const tomorrow = new Date(today);
@@ -102,27 +117,14 @@ export default function EmployeeDashboard() {
 
   const handleAttendanceAction = () => {
     if (isCheckedIn) {
-      navigate('/check-out');
+      navigateToPath('/check-out'); // Use navigateToPath
     } else {
-      navigate('/check-in');
+      navigateToPath('/check-in'); // Use navigateToPath
     }
   };
 
   const handleNavigation = (itemId: string) => {
-    switch (itemId) {
-      case 'dashboard':
-        navigate('/dashboard');
-        break;
-      case 'attendance':
-        navigate('/check-in');
-        break;
-      case 'history':
-        navigate('/history');
-        break;
-      case 'profile':
-        navigate('/profile');
-        break;
-    }
+    navigateToPath(`/${itemId}`); // Use navigateToPath
   };
 
   const formatHours = (hours: number) => {
@@ -134,7 +136,16 @@ export default function EmployeeDashboard() {
 
   if (authLoading || attendanceLoading || recentActivityLoading) {
     return (
-      <EmployeeLayout centered hasBottomNav={false} hasHeader={false}>
+      <EmployeeLayout centered hasBottomNav={false} hasHeader={false}
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
         <div className="flex items-center justify-center">
           <LoadingSpinner size="lg" />
         </div>
@@ -144,7 +155,16 @@ export default function EmployeeDashboard() {
 
   if (attendanceError || recentActivityError) {
     return (
-      <EmployeeLayout centered hasBottomNav={false} hasHeader={false}>
+      <EmployeeLayout centered hasBottomNav={false} hasHeader={false}
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
         <div className="text-center text-destructive">
           Error loading dashboard data: {attendanceError?.message || recentActivityError?.message}
         </div>
@@ -153,119 +173,126 @@ export default function EmployeeDashboard() {
   }
 
   return (
-    <>
-      <Header title="DREAMS Attendance Management System" />
-      <EmployeeLayout>
-        <div className="space-y-6">
-          {/* Welcome Section */}
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              Welcome, {profile?.full_name?.split(' ')[0] || 'Employee'}
-            </h1>
-            <p className="text-muted-foreground">
-              {isCheckedIn ? 'You are currently checked in' : 'Ready to start your day?'}
-            </p>
+    <EmployeeLayout
+      isMobile={isMobile}
+      activeTab={activeTab}
+      sideMenuOpen={sideMenuOpen}
+      toggleSideMenu={toggleSideMenu}
+      closeSideMenu={closeSideMenu}
+      navigateToPath={navigateToPath}
+      userName={userName}
+      userRole={userRole}
+      hasBottomNav={true}
+      hasHeader={true}
+    >
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Welcome, {profile?.full_name?.split(' ')[0] || 'Employee'}
+          </h1>
+          <p className="text-muted-foreground">
+            {isCheckedIn ? 'You are currently checked in' : 'Ready to start your day?'}
+          </p>
+        </div>
+
+        {/* Main Attendance Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={handleAttendanceAction}
+            className="btn-attendance w-full max-w-sm"
+            disabled={locationStatus === 'error'}
+          >
+            {isCheckedIn ? (
+              <>
+                <CheckCircle className="w-6 h-6 mr-2" />
+                Check Out
+              </>
+            ) : (
+              <>
+                <Clock className="w-6 h-6 mr-2" />
+                Check In
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Location Status */}
+        <div className="flex justify-center">
+          <div className="location-indicator verified">
+            <MapPin className="w-4 h-4" />
+            <span>
+              {locationStatus === 'verified' ? 'Location Verified' : 
+               locationStatus === 'pending' ? 'Verifying Location...' : 
+               'Location Error'}
+            </span>
           </div>
+        </div>
 
-          {/* Main Attendance Button */}
-          <div className="flex justify-center">
-            <Button
-              onClick={handleAttendanceAction}
-              className="btn-attendance w-full max-w-sm"
-              disabled={locationStatus === 'error'}
-            >
-              {isCheckedIn ? (
-                <>
-                  <CheckCircle className="w-6 h-6 mr-2" />
-                  Check Out
-                </>
-              ) : (
-                <>
-                  <Clock className="w-6 h-6 mr-2" />
-                  Check In
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Location Status */}
-          <div className="flex justify-center">
-            <div className="location-indicator verified">
-              <MapPin className="w-4 h-4" />
-              <span>
-                {locationStatus === 'verified' ? 'Location Verified' : 
-                 locationStatus === 'pending' ? 'Verifying Location...' : 
-                 'Location Error'}
-              </span>
-            </div>
-          </div>
-
-          {/* Status Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="status-card">
-              <div className="flex flex-col items-center text-center">
-                <Clock className="w-8 h-8 text-primary mb-2" />
-                <h3 className="font-semibold text-sm text-muted-foreground">Today's Hours</h3>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatHours(todayHours)}
-                </p>
-              </div>
-            </Card>
-
-            <Card className="status-card">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-8 h-8 mb-2">
-                  {isCheckedIn ? (
-                    <CheckCircle className="w-8 h-8 text-accent" />
-                  ) : (
-                    <AlertCircle className="w-8 h-8 text-muted-foreground" />
-                  )}
-                </div>
-                <h3 className="font-semibold text-sm text-muted-foreground">Status</h3>
-                <p className="text-lg font-bold text-foreground">
-                  {isCheckedIn ? 'Checked In' : 'Checked Out'}
-                </p>
-              </div>
-            </Card>
-          </div>
-
-          {/* Current Session Info */}
-          {isCheckedIn && checkInTime && (
-            <Card className="status-card">
-              <div className="text-center">
-                <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-                  Current Session
-                </h3>
-                <p className="text-foreground">
-                  Started at {checkInTime}
-                </p>
-              </div>
-            </Card>
-          )}
-
-          {/* Recent Activity */}
+        {/* Status Cards */}
+        <div className="grid grid-cols-2 gap-4">
           <Card className="status-card">
-            <h3 className="font-semibold text-foreground mb-3">Recent Activity</h3>
-            <div className="space-y-2">
-              {recentActivities?.length > 0 ? (
-                recentActivities.map((activity, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                    <span className="text-sm text-foreground">
-                      {activity.check_out_time ? 'Check Out' : 'Check In'}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {format(parseISO(activity.check_out_time || activity.check_in_time), 'p')}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center">No recent activity.</p>
-              )}
+            <div className="flex flex-col items-center text-center">
+              <Clock className="w-8 h-8 text-primary mb-2" />
+              <h3 className="font-semibold text-sm text-muted-foreground">Today's Hours</h3>
+              <p className="text-2xl font-bold text-foreground">
+                {formatHours(todayHours)}
+              </p>
+            </div>
+          </Card>
+
+          <Card className="status-card">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-8 h-8 mb-2">
+                {isCheckedIn ? (
+                  <CheckCircle className="w-8 h-8 text-accent" />
+                ) : (
+                  <AlertCircle className="w-8 h-8 text-muted-foreground" />
+                )}
+              </div>
+              <h3 className="font-semibold text-sm text-muted-foreground">Status</h3>
+              <p className="text-lg font-bold text-foreground">
+                {isCheckedIn ? 'Checked In' : 'Checked Out'}
+              </p>
             </div>
           </Card>
         </div>
-      </EmployeeLayout>
-      <BottomNavigation activeItem="dashboard" onItemClick={handleNavigation} />
-    </>
+
+        {/* Current Session Info */}
+        {isCheckedIn && checkInTime && (
+          <Card className="status-card">
+            <div className="text-center">
+              <h3 className="font-semibold text-sm text-muted-foreground mb-2">
+                Current Session
+              </h3>
+              <p className="text-foreground">
+                Started at {checkInTime}
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {/* Recent Activity */}
+        <Card className="status-card">
+          <h3 className="font-semibold text-foreground mb-3">Recent Activity</h3>
+          <div className="space-y-2">
+            {recentActivities?.length > 0 ? (
+              recentActivities.map((activity, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b border-border last:border-0">
+                  <span className="text-sm text-foreground">
+                    {activity.check_out_time ? 'Check Out' : 'Check In'}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {format(parseISO(activity.check_out_time || activity.check_in_time), 'p')}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center">No recent activity.</p>
+            )}
+          </div>
+        </Card>
+      </div>
+    </EmployeeLayout>
   );
 }

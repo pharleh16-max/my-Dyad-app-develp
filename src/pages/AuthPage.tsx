@@ -11,10 +11,26 @@ import { useAuthState } from '@/hooks/useAuthState';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmployeeLayout } from '@/components/layout/EmployeeLayout';
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useNavigation } from '@/hooks/useNavigation'; // Import useNavigation
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 
 export default function AuthPage() {
   const { signIn, signUp, isAuthenticated, isLoading, user, profile } = useAuthState();
   const { toast } = useToast(); // Initialize useToast
+
+  const isMobile = useIsMobile();
+  const {
+    activeTab,
+    sideMenuOpen,
+    toggleSideMenu,
+    closeSideMenu,
+    navigateToTab,
+    navigateToPath,
+  } = useNavigation("employee"); // Default to employee for auth page
+
+  const userName = profile?.full_name || "Guest"; // Use a default for unauthenticated users
+  const userRole = profile?.role || "employee"; // Default to employee for auth page
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -32,7 +48,16 @@ export default function AuthPage() {
 
   if (isLoading) {
     return (
-      <EmployeeLayout centered hasBottomNav={false} hasHeader={false}>
+      <EmployeeLayout centered hasBottomNav={false} hasHeader={false}
+        isMobile={isMobile}
+        activeTab={activeTab}
+        sideMenuOpen={sideMenuOpen}
+        toggleSideMenu={toggleSideMenu}
+        closeSideMenu={closeSideMenu}
+        navigateToPath={navigateToPath}
+        userName={userName}
+        userRole={userRole}
+      >
         <div className="flex items-center justify-center">
           <LoadingSpinner size="lg" />
         </div>
@@ -179,7 +204,16 @@ export default function AuthPage() {
   };
 
   return (
-    <EmployeeLayout centered hasBottomNav={false} hasHeader={false}>
+    <EmployeeLayout centered hasBottomNav={false} hasHeader={false}
+      isMobile={isMobile}
+      activeTab={activeTab}
+      sideMenuOpen={sideMenuOpen}
+      toggleSideMenu={toggleSideMenu}
+      closeSideMenu={closeSideMenu}
+      navigateToPath={navigateToPath}
+      userName={userName}
+      userRole={userRole}
+    >
       <div className="w-full max-w-md mx-auto">
         {/* Logo and Title */}
         <div className="text-center mb-8">
