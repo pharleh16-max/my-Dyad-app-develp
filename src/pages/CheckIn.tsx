@@ -20,9 +20,11 @@ export default function CheckIn() {
     latitude?: number;
     longitude?: number;
     address?: string;
+    accuracy?: number; // Added accuracy
     verified: boolean;
   }>({ verified: false });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isVerifyingLocation, setIsVerifyingLocation] = useState(true); // New state for location verification
 
   useEffect(() => {
     // Start location verification automatically
@@ -30,6 +32,7 @@ export default function CheckIn() {
   }, []);
 
   const verifyLocation = async () => {
+    setIsVerifyingLocation(true);
     try {
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
@@ -37,23 +40,48 @@ export default function CheckIn() {
             setLocationData({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
-              address: "Main Office Building", // Mock address
-              verified: true
+              address: "Main Office Building", // Mock address for display, can be reverse geocoded later
+              accuracy: position.coords.accuracy, // Store accuracy
+              verified: true // Assume verified if location is obtained
             });
+            setIsVerifyingLocation(false);
             setCurrentStep('biometric');
           },
           (error) => {
             console.error('Location error:', error);
+            setLocationData(prev => ({ ...prev, verified: false }));
+            setIsVerifyingLocation(false);
             toast({
               title: "Location Error",
-              description: "Unable to verify your location. Please check your GPS settings.",
+              description: "Unable to verify your location. Please check your GPS settings and permissions.",
               variant: "destructive",
             });
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
           }
         );
+      } else {
+        console.error('Geolocation not supported');
+        setLocationData(prev => ({ ...prev, verified: false }));
+        setIsVerifyingLocation(false);
+        toast({
+          title: "Location Error",
+          description: "Geolocation is not supported by your browser.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Geolocation not supported');
+      console.error('Error with geolocation:', error);
+      setLocationData(prev => ({ ...prev, verified: false }));
+      setIsVerifyingLocation(false);
+      toast({
+        title: "Location Error",
+        description: "An unexpected error occurred during location verification.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -78,6 +106,7 @@ export default function CheckIn() {
       //   location_latitude: locationData.latitude,
       //   location_longitude: locationData.longitude,
       //   location_address: locationData.address,
+      //   location_accuracy: locationData.accuracy,
       //   verification_method: 'biometric'
       // };
 
@@ -111,13 +140,19 @@ export default function CheckIn() {
         return (
           <div className="text-center space-y-6">
             <LocationStatus 
-              isVerifying={true}
-              isVerified={false}
-              address=""
+              isVerifying={isVerifyingLocation}
+              isVerified={locationData.verified}
+              address={locationData.address || ""}
+              accuracy={locationData.accuracy}
             />
             <p className="text-muted-foreground">
-              Please wait while we verify your location...
+              {isVerifyingLocation ? "Please wait while we verify your location..." : "Location verification failed. Please ensure GPS is enabled."}
             </p>
+            {!isVerifyingLocation && !locationData.verified && (
+              <Button onClick={verifyLocation} className="btn-attendance">
+                Retry Location
+              </Button>
+            )}
           </div>
         );
 
@@ -128,6 +163,7 @@ export default function CheckIn() {
               isVerifying={false}
               isVerified={locationData.verified}
               address={locationData.address || ""}
+              accuracy={locationData.accuracy}
             />
             
             <div className="space-y-4">
@@ -180,7 +216,7 @@ export default function CheckIn() {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Location:</span>
                   <span className="text-sm font-medium text-foreground">
-                    {locationData.address}
+                    {locationData.address} {locationData.accuracy ? `(±${Math.round(locationData.accuracy)}m)` : ''}
                   </span>
                 </div>
                 <div className="flex justify-between">
