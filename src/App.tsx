@@ -19,7 +19,13 @@ const CheckOut = React.lazy(() => import("./pages/CheckOut"));
 const AttendanceHistory = React.lazy(() => import("./pages/AttendanceHistory"));
 const EmployeeProfile = React.lazy(() => import("./pages/EmployeeProfile"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
-const AdminEmployeeApproval = React.lazy(() => import("./pages/AdminEmployeeApproval")); // New import
+const AdminEmployeeApproval = React.lazy(() => import("./pages/AdminEmployeeApproval"));
+const AdminManageLocations = React.lazy(() => import("./pages/AdminManageLocations")); // New import
+const AdminSystemSettings = React.lazy(() => import("./pages/AdminSystemSettings")); // New import
+const AdminUserManagement = React.lazy(() => import("./pages/AdminUserManagement")); // New import
+const AdminDataExport = React.lazy(() => import("./pages/AdminDataExport")); // New import
+const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity")); // New import
+const AdminHelpSupport = React.lazy(() => import("./pages/AdminHelpSupport")); // New import
 
 const queryClient = new QueryClient();
 
@@ -74,13 +80,41 @@ const App = () => (
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
-              {/* New Admin Route */}
               <Route path="/admin/employee-approval" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminEmployeeApproval />
                 </ProtectedRoute>
               } />
-              {/* Add other admin routes here as they are created */}
+              <Route path="/admin/locations" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminManageLocations />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminSystemSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminUserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/export" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDataExport />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/security" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminSecurity />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/help" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminHelpSupport />
+                </ProtectedRoute>
+              } />
               
               {/* Catch-all route - must be last */}
               <Route path="*" element={<NotFound />} />
