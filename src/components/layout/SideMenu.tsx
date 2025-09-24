@@ -18,6 +18,7 @@ import {
   BarChart3 // Added for Dashboard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthState } from "@/hooks/useAuthState"; // Import useAuthState
 
 interface MenuItem {
   id: string;
@@ -66,9 +67,16 @@ export function SideMenu({
   onThemeToggle
 }: SideMenuProps) {
   const menuItems = userRole === 'admin' ? adminMenuItems : employeeMenuItems;
+  const { signOut } = useAuthState(); // Use useAuthState hook
 
   const handleItemClick = (path: string) => {
     onItemClick(path);
+    onClose();
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    onItemClick('/auth'); // Navigate to auth page after logout
     onClose();
   };
 
@@ -136,7 +144,7 @@ export function SideMenu({
           
           <Button
             variant="ghost"
-            onClick={() => handleItemClick('/logout')}
+            onClick={handleLogout} // Call the new handleLogout function
             className="justify-start gap-3 h-12 px-4 hover:bg-destructive/10 hover:text-destructive text-foreground/80"
           >
             <LogOut className="h-5 w-5" />
