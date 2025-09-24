@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AttendanceDREAMS Design System - Professional Mobile-First Design
+All colors MUST be HSL. Colors based on PRD specifications.
+*/
+
+@layer base {
+  :root {
+    /* AttendanceDREAMS Color Palette */
+    --background: 210 40% 98%; /* #F8FAFC - Light Gray */
+    --foreground: 215 16% 47%; /* Professional dark text */
+
+    --card: 0 0% 100%; /* White cards for content */
+    --card-foreground: 215 16% 47%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 16% 47%;
+
+    --primary: 218 70% 40%; /* #1E40AF - Professional Blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 218 70% 50%; /* Lighter variant for effects */
+
+    --secondary: 215 16% 47%; /* #64748B - Slate Gray */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 160 84% 39%; /* #10B981 - Success Green */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%; /* #EF4444 - Alert Red */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 31% 91%;
+    --input: 214 31% 91%;
+    --ring: 218 70% 40%;
+
+    --radius: 0.75rem; /* Slightly more rounded for mobile */
+
+    /* Sidebar colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 16% 47%;
+    --sidebar-primary: 218 70% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 215 16% 47%;
+    --sidebar-border: 214 31% 91%;
+    --sidebar-ring: 218 70% 40%;
+
+    /* Custom gradients and effects */
+    --gradient-primary: linear-gradient(135deg, hsl(218 70% 40%), hsl(218 70% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 84% 39%), hsl(160 84% 49%));
+    --shadow-elegant: 0 10px 30px -10px hsl(218 70% 40% / 0.3);
+    --shadow-card: 0 4px 12px -2px hsl(215 16% 47% / 0.1);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* Dark mode maintains professional appearance */
+    --background: 215 28% 8%; /* Dark professional background */
+    --foreground: 210 40% 98%;
+
+    --card: 215 28% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 28% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 218 70% 50%; /* Brighter primary in dark mode */
+    --primary-foreground: 215 28% 8%;
+    --primary-glow: 218 70% 60%;
+
+    --secondary: 215 16% 20%; /* Darker secondary */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 15%;
+    --muted-foreground: 215 16% 65%;
+
+    --accent: 160 84% 45%; /* Slightly brighter accent */
+    --accent-foreground: 215 28% 8%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 28% 18%;
+    --input: 215 28% 18%;
+    --ring: 218 70% 50%;
+
+    /* Dark sidebar */
+    --sidebar-background: 215 28% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 218 70% 50%;
+    --sidebar-primary-foreground: 215 28% 8%;
+    --sidebar-accent: 215 28% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 28% 18%;
+    --sidebar-ring: 218 70% 50%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(218 70% 50%), hsl(218 70% 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 84% 45%), hsl(160 84% 55%));
+    --shadow-elegant: 0 10px 30px -10px hsl(218 70% 50% / 0.4);
+    --shadow-card: 0 4px 12px -2px hsl(0 0% 0% / 0.2);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
+  }
+}
+
+@layer components {
+  /* Mobile-first button styles */
+  .btn-attendance {
+    @apply bg-gradient-to-r from-primary to-primary-glow text-primary-foreground;
+    @apply rounded-2xl px-8 py-4 text-lg font-semibold shadow-elegant;
+    @apply transform transition-all duration-300 hover:scale-105 active:scale-95;
+    min-height: 56px; /* Large touch target for mobile */
+  }
+
+  /* Fingerprint scanner styles */
+  .fingerprint-scanner {
+    @apply relative bg-card border-2 border-primary/20 rounded-full;
+    @apply w-32 h-32 flex items-center justify-center;
+    @apply shadow-card transition-all duration-300;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.1), transparent 70%);
+  }
+
+  .fingerprint-scanner.scanning {
+    @apply border-primary animate-pulse;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Location indicator */
+  .location-indicator {
+    @apply flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium;
+  }
+
+  .location-indicator.verified {
+    @apply bg-accent/10 text-accent border border-accent/20;
+  }
+
+  .location-indicator.pending {
+    @apply bg-secondary/10 text-secondary border border-secondary/20;
+  }
+
+  /* Status cards */
+  .status-card {
+    @apply bg-card border border-border rounded-xl p-4 shadow-card;
+    @apply transition-all duration-200 hover:shadow-lg;
+  }
+
+  /* Navigation styles */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg;
+    @apply transition-colors duration-200 text-foreground/80;
+  }
+
+  .nav-item.active {
+    @apply bg-primary text-primary-foreground font-medium;
+  }
+
+  .nav-item:not(.active):hover {
+    @apply bg-muted text-foreground;
+  }
+}
