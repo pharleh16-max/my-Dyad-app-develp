@@ -31,7 +31,7 @@ interface Profile {
   role: 'employee' | 'admin';
   status: 'active' | 'pending' | 'suspended' | 'rejected';
   created_at: string;
-  email?: string;
+  email?: string; // Now directly available in the profile
 }
 
 export default function AdminEmployeeApproval() {
@@ -58,16 +58,13 @@ export default function AdminEmployeeApproval() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, employee_id, role, status, created_at, auth_users(email)')
+        .select('id, full_name, employee_id, role, status, created_at, email') // Select email directly
         .eq('status', 'pending');
 
       if (error) {
         throw new Error(error.message);
       }
-      return data.map(p => ({
-        ...p,
-        email: (p as any).auth_users?.email,
-      })) as Profile[];
+      return data as Profile[]; // Cast directly as email is now part of Profile
     },
   });
 
