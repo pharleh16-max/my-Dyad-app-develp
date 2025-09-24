@@ -97,17 +97,17 @@ const App = () => (
                   <AdminSystemSettings />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/employees" element={ {/* Updated path for AdminEmployeesPage */}
+              <Route path="/admin/employees" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminEmployeesPage />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/attendance" element={ {/* New route for AdminLiveMonitor */}
+              <Route path="/admin/attendance" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminLiveMonitor />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/reports" element={ {/* New route for AdminReportsPage */}
+              <Route path="/admin/reports" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminReportsPage />
                 </ProtectedRoute>

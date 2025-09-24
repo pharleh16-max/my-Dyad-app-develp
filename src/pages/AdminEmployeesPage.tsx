@@ -12,7 +12,7 @@ export default function AdminEmployeesPage() {
     activeTab,
     sideMenuOpen,
     toggleSideMenu,
-    closeSideMenu,
+    closeSideMenu, // Correctly destructuring closeSideMenu
     navigateToTab,
     navigateToPath,
   } = useNavigation("admin");
@@ -27,7 +27,7 @@ export default function AdminEmployeesPage() {
       activeTab={activeTab}
       sideMenuOpen={sideMenuOpen}
       toggleSideMenu={toggleSideMenu}
-      closeSideMenu={closeMenu}
+      closeSideMenu={closeSideMenu} // Correctly passing closeSideMenu
       navigateToTab={navigateToTab}
       navigateToPath={navigateToPath}
       userName={userName}
