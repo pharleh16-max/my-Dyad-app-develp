@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { startOfDay } from "date-fns";
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 export default function AdminDashboard() {
   const { profile } = useAuthState();
@@ -20,6 +21,7 @@ export default function AdminDashboard() {
     navigateToTab,
     navigateToPath,
   } = useNavigation("admin");
+  const { toast } = useToast(); // Initialize useToast
 
   const userName = profile?.full_name || "Admin";
   const userRole = profile?.role || "admin";
@@ -75,6 +77,26 @@ export default function AdminDashboard() {
     },
   });
 
+  const handleAdminSettingsClick = () => {
+    navigateToPath('/admin/settings');
+  };
+
+  const handleAdminProfileClick = () => {
+    // For admin, clicking the user icon might lead to their own profile or a general admin profile view.
+    // For now, we'll navigate to system settings or show a toast.
+    toast({
+      title: "Admin Profile",
+      description: "Admin profile management is typically handled via employee management or system settings.",
+    });
+  };
+
+  const handleAdminNotificationsClick = () => {
+    toast({
+      title: "Notifications",
+      description: "No new notifications for admin.",
+    });
+  };
+
   if (isLoadingEmployees || isLoadingOnDuty || isLoadingLocations) {
     return (
       <AdminLayout
@@ -88,6 +110,9 @@ export default function AdminDashboard() {
         navigateToPath={navigateToPath}
         userName={userName}
         userRole={userRole}
+        onSettingsClick={handleAdminSettingsClick}
+        onProfileClick={handleAdminProfileClick}
+        onNotificationsClick={handleAdminNotificationsClick}
       >
         <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
@@ -109,6 +134,9 @@ export default function AdminDashboard() {
         navigateToPath={navigateToPath}
         userName={userName}
         userRole={userRole}
+        onSettingsClick={handleAdminSettingsClick}
+        onProfileClick={handleAdminProfileClick}
+        onNotificationsClick={handleAdminNotificationsClick}
       >
         <div className="text-center text-destructive p-6">
           Error loading dashboard data: {employeesError?.message || onDutyError?.message || locationsError?.message}
@@ -129,6 +157,9 @@ export default function AdminDashboard() {
       navigateToPath={navigateToPath}
       userName={userName}
       userRole={userRole}
+      onSettingsClick={handleAdminSettingsClick}
+      onProfileClick={handleAdminProfileClick}
+      onNotificationsClick={handleAdminNotificationsClick}
       // isDarkMode and onThemeToggle would come from a global context if implemented
     >
       <div className="space-y-6">

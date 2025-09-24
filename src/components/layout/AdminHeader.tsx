@@ -7,9 +7,20 @@ interface AdminHeaderProps {
   onMenuClick?: () => void;
   userRole: UserRole; // Add userRole prop
   userName: string; // Add userName prop
+  onSettingsClick?: () => void; // New prop
+  onProfileClick?: () => void; // New prop
+  onNotificationsClick?: () => void; // New prop
 }
 
-export function AdminHeader({ title, onMenuClick, userRole, userName }: AdminHeaderProps) {
+export function AdminHeader({ 
+  title, 
+  onMenuClick, 
+  userRole, 
+  userName,
+  onSettingsClick,
+  onProfileClick,
+  onNotificationsClick
+}: AdminHeaderProps) {
   // isMobile is determined by the parent (AdminLayout) and passed via onMenuClick's visibility
   // profile is passed as userName and userRole
   return (
@@ -19,6 +30,9 @@ export function AdminHeader({ title, onMenuClick, userRole, userName }: AdminHea
       onMenuClick={onMenuClick}
       userRole={userRole}
       userName={userName}
+      onSettingsClick={onSettingsClick}
+      onProfileClick={onProfileClick}
+      onNotificationsClick={onNotificationsClick}
     />
   );
 }

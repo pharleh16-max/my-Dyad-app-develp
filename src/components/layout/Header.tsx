@@ -9,6 +9,9 @@ interface HeaderProps {
   showNotifications?: boolean;
   notificationCount?: number;
   userRole?: 'employee' | 'admin';
+  onSettingsClick?: () => void; // New prop
+  onProfileClick?: () => void; // New prop
+  onNotificationsClick?: () => void; // New prop
 }
 
 export function Header({ 
@@ -17,7 +20,10 @@ export function Header({
   onMenuClick, 
   showNotifications = true, 
   notificationCount = 0,
-  userRole = 'employee'
+  userRole = 'employee',
+  onSettingsClick,
+  onProfileClick,
+  onNotificationsClick
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-sm">
@@ -47,7 +53,7 @@ export function Header({
         {/* Right side - Notifications and Profile */}
         <div className="flex items-center gap-2">
           {showNotifications && (
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative" onClick={onNotificationsClick}>
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
                 <Badge 
@@ -60,11 +66,11 @@ export function Header({
             </Button>
           )}
           
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={onSettingsClick}>
             <Settings className="h-5 w-5" />
           </Button>
           
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={onProfileClick}>
             <User className="h-5 w-5" />
           </Button>
         </div>

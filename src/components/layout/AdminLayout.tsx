@@ -5,6 +5,7 @@ import { AdminHeader } from "./AdminHeader";
 import { SideMenu } from "./SideMenu";
 import { BottomNavigation } from "./BottomNavigation";
 import { UserRole } from "@/hooks/useNavigation"; // Import UserRole type
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -23,6 +24,9 @@ interface AdminLayoutProps {
   onThemeToggle?: () => void;
   hasBottomNav?: boolean;
   hasHeader?: boolean;
+  onSettingsClick?: () => void; // New prop
+  onProfileClick?: () => void; // New prop
+  onNotificationsClick?: () => void; // New prop
 }
 
 export function AdminLayout({
@@ -41,8 +45,32 @@ export function AdminLayout({
   isDarkMode,
   onThemeToggle,
   hasBottomNav = true,
-  hasHeader = true
+  hasHeader = true,
+  onSettingsClick,
+  onProfileClick,
+  onNotificationsClick
 }: AdminLayoutProps) {
+  const { toast } = useToast(); // Initialize useToast
+
+  // Default handlers if not provided by parent
+  const defaultOnSettingsClick = onSettingsClick || (() => {
+    navigateToPath('/admin/settings');
+  });
+  const defaultOnProfileClick = onProfileClick || (() => {
+    // For admin, profile might be a general admin profile or their own.
+    // For now, we'll navigate to system settings or show a toast.
+    toast({
+      title: "Admin Profile",
+      description: "Admin profile management is typically handled via employee management or system settings.",
+    });
+  });
+  const defaultOnNotificationsClick = onNotificationsClick || (() => {
+    toast({
+      title: "Notifications",
+      description: "No new notifications.",
+    });
+  });
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {hasHeader && (
@@ -51,6 +79,9 @@ export function AdminLayout({
           onMenuClick={toggleSideMenu}
           userRole={userRole}
           userName={userName}
+          onSettingsClick={defaultOnSettingsClick}
+          onProfileClick={defaultOnProfileClick}
+          onNotificationsClick={defaultOnNotificationsClick}
         />
       )}
       <div className="flex flex-1">
