@@ -49,8 +49,9 @@ export function useNavigation(userRole: UserRole = 'employee') {
       locations: '/admin/locations',
       system: '/admin/settings',
       data: '/admin/export',
-      security: '/admin/security-settings', // Updated path
+      security: '/admin/security-settings',
       help: '/admin/help',
+      'admin-profile': '/admin/profile', // New admin profile route
     } : {
       dashboard: '/dashboard',
       attendance: '/check-in',
@@ -93,8 +94,9 @@ function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
     if (pathname.includes('/admin/locations')) return 'locations';
     if (pathname.includes('/admin/settings')) return 'system';
     if (pathname.includes('/admin/export')) return 'data';
-    if (pathname.includes('/admin/security-settings')) return 'security'; // Updated path
+    if (pathname.includes('/admin/security-settings')) return 'security';
     if (pathname.includes('/admin/help')) return 'help';
+    if (pathname.includes('/admin/profile')) return 'admin-profile'; // New admin profile tab
     return 'dashboard'; // Default for admin
   } else {
     if (pathname.includes('/check-in') || pathname.includes('/check-out')) return 'attendance';

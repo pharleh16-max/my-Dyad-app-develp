@@ -43,7 +43,7 @@ export function Header({
 
   const handleProfileSettingsClick = () => {
     if (userRole === 'admin') {
-      navigate('/admin/settings'); // Admins might go to system settings or a dedicated admin profile page
+      navigate('/admin/profile'); // Navigate to Admin's personal profile page
     } else {
       navigate('/profile'); // Employees go to their profile page
     }

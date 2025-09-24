@@ -29,7 +29,8 @@ const AdminReportsPage = React.lazy(() => import("./pages/AdminReportsPage"));
 const AdminDataExport = React.lazy(() => import("./pages/AdminDataExport"));
 const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity"));
 const AdminHelpSupport = React.lazy(() => import("./pages/AdminHelpSupport"));
-const AdminSecuritySettings = React.lazy(() => import("./pages/AdminSecuritySettings")); // New import
+const AdminSecuritySettings = React.lazy(() => import("./pages/AdminSecuritySettings"));
+const AdminProfile = React.lazy(() => import("./pages/AdminProfile")); // New import
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,11 @@ const App = () => (
               <Route path="/admin/security-settings" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminSecuritySettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/profile" element={ // New Admin Profile Route
+                <ProtectedRoute requiredRole="admin">
+                  <AdminProfile />
                 </ProtectedRoute>
               } />
               
