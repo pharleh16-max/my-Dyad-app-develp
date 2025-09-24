@@ -50,10 +50,12 @@ export function useAuthState() {
 
         // Fetch user profile when authenticated
         if (session?.user) {
+          console.log('Auth state changed to SIGNED_IN, fetching profile for user:', session.user.id);
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
         } else {
+          console.log('Auth state changed to SIGNED_OUT or no user, clearing profile.');
           setAuthState(prev => ({ ...prev, profile: null }));
         }
       }
@@ -71,6 +73,7 @@ export function useAuthState() {
       }));
 
       if (session?.user) {
+        console.log('Initial session found, fetching profile for user:', session.user.id);
         setTimeout(() => {
           fetchUserProfile(session.user.id);
         }, 0);
@@ -81,11 +84,12 @@ export function useAuthState() {
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
+    console.log('Attempting to fetch profile for userId:', userId);
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId) // Changed from 'user_id' to 'id'
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) {
@@ -93,9 +97,15 @@ export function useAuthState() {
         return;
       }
 
-      setAuthState(prev => ({ ...prev, profile: profile as Profile | null }));
+      if (profile) {
+        console.log('Profile fetched successfully:', profile);
+        setAuthState(prev => ({ ...prev, profile: profile as Profile | null }));
+      } else {
+        console.log('No profile found for userId:', userId);
+        setAuthState(prev => ({ ...prev, profile: null }));
+      }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Unexpected error fetching user profile:', error);
     }
   };
 
