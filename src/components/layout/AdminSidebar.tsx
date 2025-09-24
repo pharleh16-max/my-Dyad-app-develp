@@ -43,7 +43,7 @@ const adminSidebarItems: AdminMenuItem[] = [
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   // Removed 'User Management' as 'Employees' now covers general employee management
   { id: 'data', label: 'Data Export', icon: Database, path: '/admin/export' },
-  { id: 'security', label: 'Security', icon: Shield, path: '/admin/security', badge: 'New' },
+  { id: 'security', label: 'Security', icon: Shield, badge: 'New', path: '/admin/security' },
   { id: 'help', label: 'Help & Support', icon: HelpCircle, path: '/admin/help' },
 ];
 
