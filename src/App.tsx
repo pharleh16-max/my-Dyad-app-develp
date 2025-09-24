@@ -18,13 +18,14 @@ const CheckIn = React.lazy(() => import("./pages/CheckIn"));
 const CheckOut = React.lazy(() => import("./pages/CheckOut"));
 const AttendanceHistory = React.lazy(() => import("./pages/AttendanceHistory"));
 const EmployeeProfile = React.lazy(() => import("./pages/EmployeeProfile"));
+const EmployeeHelpSupport = React.lazy(() => import("./pages/EmployeeHelpSupport")); // New import
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const AdminEmployeeApproval = React.lazy(() => import("./pages/AdminEmployeeApproval"));
 const AdminManageLocations = React.lazy(() => import("./pages/AdminManageLocations"));
 const AdminSystemSettings = React.lazy(() => import("./pages/AdminSystemSettings"));
-const AdminEmployeesPage = React.lazy(() => import("./pages/AdminEmployeesPage")); // Renamed import
-const AdminLiveMonitor = React.lazy(() => import("./pages/AdminLiveMonitor")); // New import
-const AdminReportsPage = React.lazy(() => import("./pages/AdminReportsPage")); // New import
+const AdminEmployeesPage = React.lazy(() => import("./pages/AdminEmployeesPage"));
+const AdminLiveMonitor = React.lazy(() => import("./pages/AdminLiveMonitor"));
+const AdminReportsPage = React.lazy(() => import("./pages/AdminReportsPage"));
 const AdminDataExport = React.lazy(() => import("./pages/AdminDataExport"));
 const AdminSecurity = React.lazy(() => import("./pages/AdminSecurity"));
 const AdminHelpSupport = React.lazy(() => import("./pages/AdminHelpSupport"));
@@ -73,6 +74,11 @@ const App = () => (
               <Route path="/profile" element={
                 <ProtectedRoute requiredRole="employee">
                   <EmployeeProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/help" element={
+                <ProtectedRoute requiredRole="employee">
+                  <EmployeeHelpSupport />
                 </ProtectedRoute>
               } />
               

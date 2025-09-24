@@ -52,7 +52,7 @@ const adminMenuItems: MenuItem[] = [
   { id: 'locations', label: 'Manage Locations', icon: MapPin, path: '/admin/locations' },
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   { id: 'data', label: 'Data Export', icon: Database, path: '/admin/export' },
-  { id: 'security', label: 'Security', icon: Shield, path: '/admin/security', badge: 'New' },
+  { id: 'security', label: 'Security', icon: Shield, badge: 'New', path: '/admin/security' },
   { id: 'help', label: 'Help & Support', icon: HelpCircle, path: '/admin/help' },
 ];
 

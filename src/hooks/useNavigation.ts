@@ -48,7 +48,6 @@ export function useNavigation(userRole: UserRole = 'employee') {
       'employee-approval': '/admin/employee-approval',
       locations: '/admin/locations',
       system: '/admin/settings',
-      // Removed 'users' entry
       data: '/admin/export',
       security: '/admin/security',
       help: '/admin/help',
@@ -57,6 +56,7 @@ export function useNavigation(userRole: UserRole = 'employee') {
       attendance: '/check-in',
       history: '/history',
       profile: '/profile',
+      help: '/help', // Added for employee help page
     };
 
     const route = routes[tab as keyof typeof routes];
@@ -86,13 +86,12 @@ export function useNavigation(userRole: UserRole = 'employee') {
 
 function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
   if (userRole === 'admin') {
-    if (pathname.includes('/admin/employees')) return 'employees'; // Matches new AdminEmployeesPage
-    if (pathname.includes('/admin/attendance')) return 'monitoring'; // Matches new AdminLiveMonitor
-    if (pathname.includes('/admin/reports')) return 'reports'; // Matches new AdminReportsPage
+    if (pathname.includes('/admin/employees')) return 'employees';
+    if (pathname.includes('/admin/attendance')) return 'monitoring';
+    if (pathname.includes('/admin/reports')) return 'reports';
     if (pathname.includes('/admin/employee-approval')) return 'employee-approval';
     if (pathname.includes('/admin/locations')) return 'locations';
     if (pathname.includes('/admin/settings')) return 'system';
-    // Removed 'users' entry
     if (pathname.includes('/admin/export')) return 'data';
     if (pathname.includes('/admin/security')) return 'security';
     if (pathname.includes('/admin/help')) return 'help';
@@ -101,6 +100,7 @@ function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
     if (pathname.includes('/check-in') || pathname.includes('/check-out')) return 'attendance';
     if (pathname.includes('/history')) return 'history';
     if (pathname.includes('/profile')) return 'profile';
+    if (pathname.includes('/help')) return 'help'; // Added for employee help page
     return 'dashboard'; // Default for employee
   }
 }
