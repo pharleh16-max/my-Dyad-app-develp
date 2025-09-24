@@ -45,14 +45,14 @@ const employeeMenuItems: MenuItem[] = [
 
 const adminMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/admin/dashboard' },
-  { id: 'employees', label: 'Employee Management', icon: Users2, path: '/admin/employees' }, // Corrected to Employee Management
+  { id: 'employees', label: 'Employee Management', icon: Users2, path: '/admin/employees' },
   { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' },
-  { id: 'reports', label: 'Reports', icon: FileText, path: '/admin/reports' }, // Changed icon to FileText for reports
+  { id: 'reports', label: 'Reports', icon: FileText, path: '/admin/reports' },
   { id: 'employee-approval', label: 'Employee Approval', icon: UserCheck, path: '/admin/employee-approval' },
   { id: 'locations', label: 'Manage Locations', icon: MapPin, path: '/admin/locations' },
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
   { id: 'data', label: 'Data Export', icon: Database, path: '/admin/export' },
-  { id: 'security', label: 'Security', icon: Shield, badge: 'New', path: '/admin/security' },
+  { id: 'security', label: 'Security Settings', icon: Shield, path: '/admin/security-settings' }, // Updated path and label
   { id: 'help', label: 'Help & Support', icon: HelpCircle, path: '/admin/help' },
 ];
 

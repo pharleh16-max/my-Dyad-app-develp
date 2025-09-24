@@ -35,15 +35,14 @@ interface AdminMenuItem {
 
 const adminSidebarItems: AdminMenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/admin/dashboard' },
-  { id: 'employees', label: 'Employees', icon: Users, path: '/admin/employees' }, // Points to AdminEmployeesPage
-  { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' }, // Points to AdminLiveMonitor
-  { id: 'reports', label: 'Reports', icon: Clock, path: '/admin/reports' }, // Points to AdminReportsPage
+  { id: 'employees', label: 'Employees', icon: Users, path: '/admin/employees' },
+  { id: 'monitoring', label: 'Live Monitor', icon: MapPin, path: '/admin/attendance' },
+  { id: 'reports', label: 'Reports', icon: Clock, path: '/admin/reports' },
   { id: 'employee-approval', label: 'Employee Approval', icon: UserCheck, path: '/admin/employee-approval' },
   { id: 'locations', label: 'Manage Locations', icon: MapPin, path: '/admin/locations' },
   { id: 'system', label: 'System Settings', icon: Settings, path: '/admin/settings' },
-  // Removed 'User Management' as 'Employees' now covers general employee management
   { id: 'data', label: 'Data Export', icon: Database, path: '/admin/export' },
-  { id: 'security', label: 'Security', icon: Shield, badge: 'New', path: '/admin/security' },
+  { id: 'security', label: 'Security Settings', icon: Shield, path: '/admin/security-settings' }, // Updated path and label
   { id: 'help', label: 'Help & Support', icon: HelpCircle, path: '/admin/help' },
 ];
 

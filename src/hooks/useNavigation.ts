@@ -42,21 +42,21 @@ export function useNavigation(userRole: UserRole = 'employee') {
     // Map tab IDs to routes based on user role
     const routes = userRole === 'admin' ? {
       dashboard: '/admin/dashboard',
-      employees: '/admin/employees', // Now points to AdminEmployeesPage
-      monitoring: '/admin/attendance', // Now points to AdminLiveMonitor
-      reports: '/admin/reports', // Now points to AdminReportsPage
+      employees: '/admin/employees',
+      monitoring: '/admin/attendance',
+      reports: '/admin/reports',
       'employee-approval': '/admin/employee-approval',
       locations: '/admin/locations',
       system: '/admin/settings',
       data: '/admin/export',
-      security: '/admin/security',
+      security: '/admin/security-settings', // Updated path
       help: '/admin/help',
     } : {
       dashboard: '/dashboard',
       attendance: '/check-in',
       history: '/history',
       profile: '/profile',
-      help: '/help', // Added for employee help page
+      help: '/help',
     };
 
     const route = routes[tab as keyof typeof routes];
@@ -93,14 +93,14 @@ function getActiveTabFromPath(pathname: string, userRole: UserRole): string {
     if (pathname.includes('/admin/locations')) return 'locations';
     if (pathname.includes('/admin/settings')) return 'system';
     if (pathname.includes('/admin/export')) return 'data';
-    if (pathname.includes('/admin/security')) return 'security';
+    if (pathname.includes('/admin/security-settings')) return 'security'; // Updated path
     if (pathname.includes('/admin/help')) return 'help';
     return 'dashboard'; // Default for admin
   } else {
     if (pathname.includes('/check-in') || pathname.includes('/check-out')) return 'attendance';
     if (pathname.includes('/history')) return 'history';
     if (pathname.includes('/profile')) return 'profile';
-    if (pathname.includes('/help')) return 'help'; // Added for employee help page
+    if (pathname.includes('/help')) return 'help';
     return 'dashboard'; // Default for employee
   }
 }
