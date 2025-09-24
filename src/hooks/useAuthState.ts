@@ -83,7 +83,7 @@ export function useAuthState() {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId) // Changed from 'user_id' to 'id'
         .maybeSingle();
 
       if (error) {
