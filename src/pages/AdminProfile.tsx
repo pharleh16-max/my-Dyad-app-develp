@@ -67,7 +67,7 @@ export default function AdminProfile() {
         <PasswordManagementCard />
 
         {/* Biometric Security Card */}
-        <BiometricSecurityCard profile={profile} />
+        <BiometricSecurityCard profile={profile} refetchProfile={refetchProfile} />
 
         {/* Notification Settings Card */}
         <NotificationSettingsCard />
